@@ -12,7 +12,6 @@ class cuerpo:
 	def __init__(self,p,m,v):
 		#agregar metodo que p cambie en función de v
 		self.p=p
-		#radio y ángulo de "órbita", del origen (centro estrellita) al cuerpo, ¿serán necesarios como atributos?.
 		self.x=float(p[0])
 		self.y=float(p[1])
 		#masa
@@ -48,24 +47,75 @@ class cuerpo:
 				ang=pi+atan(self.y/self.x)
 		return [r,ang]
 
-
-def vf(t,p,v,m):
-	#función que da ¿velocidad final?, recibe tiempo, posición (lista de listas de posiciones), velocidad inicial, masa y cantidad de partículas. 
-	vector=[0.0,0.0]
-	d2p=np.array([vector]*len(p))
+vector=[0.0,0.0]
+def fv1(t,p,v,m,n):
+	#función que da aceleracion (segunda derivada de posición), recibe tiempo, posición (lista de listas de posiciones), velocidad inicial, masa y cantidad de partículas. 
+	d2p=np.array([vector]*n)
 	G=-6.673884e-11
-	for i in range(0,len(p)):
-		for j in range(0,len(p)):
+	#d=distancia en la cual la velocidad ya no aumenta?
+	for i in range(0,n):
+		for j in range(0,n):
 			if j!=i:
 				Rij=np.linalg.norm(p[i]-p[j])
 				d2p[i]=d2p[i]+G*m[j]*(p[i]-p[j])/pow(Rij,3)
 				
 	return d2p
+
+def fx(v):
+	return v
 				
-	#d=distancia en la cual la velocidad ya no aumenta?
-	#return vfs
+def rk1(kix,kiv,xio,vio,n,var,h):
+	#kix tiene que ser array
+	kipx=h*kix
+	kipv=h*kiv
+	print kipx
+	print kipv
+	xip=np.array([vector]*n)
+	vip=np.array([vector]*n)
+	for i in range(0,n):
+		if var==1:
+			xip[i]=xio[i]+kipx[i]/2
+			vip[i]=vio[i]+kipv[i]/2
+		else:
+			xip[i]=xio[i]+kipx[i]
+			vip[i]=vio[i]+kipv[i]
+	return xip,vip,kipx,kipv
+
+def rk2(k1,k2,k3,k4,xio2,n):
+	xip2=xio2+(k1+2*(k2+k3)+k4)/6
+	return xip2
+
+def rk(fv,fx,xi,vi,tf,ti,m,n):
+	var=1
+	h=tf-ti
+
+	k1x=fx(vi)
+	k1v=fv(ti,xi,vi,m,n)
+	xiv,viv,k1x,k1v=rk1(k1x,k1v,xi,vi,n,var,h)
+
+	k2x=fx(viv)
+	k2v=fv(ti+h/2.0,xiv,viv,m,n)	
+	xiv,viv,k2x,k2v=rk1(k2x,k2v,xi,vi,n,var,h)
+	
+	var=0
+	k3x=fx(viv)
+	k3v=fv(ti+h/2.0,xiv,viv,m,n)
+	xiv,viv,k3x,k3v=rk1(k3x,k3v,xi,vi,n,var,h)
+
+	k4x=fx(viv)
+	k4v=fv(ti+h,xiv,viv,m,n)
+	xiv,viv,k4x,k4v=rk1(k4x,k4v,xi,vi,n,var,h)
+	
+	xiv=rk2(k1x,k2x,k3x,k4x,xi,n)
+	xf=xiv
+	
+	viv=rk2(k1v,k2v,k3v,k4v,vi,n)
+	vf=viv
+
+	return xf,vf
+
 
 posiciones=np.array([[0,3],[0,2],[0,-2],[1,1]])
-a=vf(1,posiciones,2,np.array([3,2,4,5]))
-print a
+a=rk1(posiciones,posiciones,posiciones,posiciones,4,0,7)
+#print a
 
