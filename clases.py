@@ -2,11 +2,13 @@
 #-*- coding:utf-8 -*-
 from math import *
 import numpy as np
+from time import *
 #TODA LISTA USADA TIENE QUE SER ARRAY DE NUMPY
 #Definir método para que posición cambie segun velocidad ¿o tengo que definirlo con todo lo demás?
 #Definir choques
 #Definir tamaño en función de la masa
 #Definir cálculo de X a través de runge kutta
+
 class cuerpo:
 	#m masa (acepta float), v velocidad (acepta lista, origen en el cuerpo en si, definida cartesiana), p posición (acepta lista, definida de forma polar)
 	def __init__(self,p,m,v):
@@ -48,7 +50,7 @@ class cuerpo:
 		return [r,ang]
 
 vector=[0.0,0.0]
-def fv1(t,p,v,m,n):
+def acel(t,p,v,m,n):
 	#función que da aceleracion (segunda derivada de posición), recibe tiempo, posición (lista de listas de posiciones), velocidad inicial, masa y cantidad de partículas. 
 	d2p=np.array([vector]*n)
 	G=-6.673884e-11
@@ -61,61 +63,87 @@ def fv1(t,p,v,m,n):
 				
 	return d2p
 
-def fx(v):
-	return v
+#def fx(v):
+#	return v
 				
-def rk1(kix,kiv,xio,vio,n,var,h):
-	#kix tiene que ser array
-	kipx=h*kix
-	kipv=h*kiv
-	print kipx
-	print kipv
-	xip=np.array([vector]*n)
-	vip=np.array([vector]*n)
+def rk1(kp,kv,p0,v0,n,var,h):
+	#las cuatro primeras listas de listas,kp(kix) -> k de las posiciones, kv(kiv) -> k de las velocidades. p0(xio)->posiciones iniciales, v0(vio) -> velocidades iniciales. n cantidad de cuerpos, var NIIDEA, h?
+	kp1=h*kp
+	kv1=h*kv
+	p1=np.array([vector]*n)
+	v1=np.array([vector]*n)
 	for i in range(0,n):
 		if var==1:
-			xip[i]=xio[i]+kipx[i]/2
-			vip[i]=vio[i]+kipv[i]/2
+			p1[i]=p0[i]+kp1[i]/2.0
+			v1[i]=v0[i]+kv1[i]/2.0
 		else:
-			xip[i]=xio[i]+kipx[i]
-			vip[i]=vio[i]+kipv[i]
-	return xip,vip,kipx,kipv
+			p1[i]=p0[i]+kp1[i]
+			v1[i]=v0[i]+kv1[i]
+	return p1,v1,kp1,kv1
 
-def rk2(k1,k2,k3,k4,xio2,n):
-	xip2=xio2+(k1+2*(k2+k3)+k4)/6
-	return xip2
+def rk2(k1,k2,k3,k4,p0,n):
+	#las cinco primeras lista de listas, p0 y n same que arriba, k son las k para rukkatacaputa
+	p1=np.array([vector]*n)
+	for i in range(0,n):
+		p1[i]=p0[i]+(k1[i]+2*(k2[i]+k3[i])+k4[i])/6.0
+	return p1
 
-def rk(fv,fx,xi,vi,tf,ti,m,n):
+def rk(p0,v0,tf,ti,m,n):
+	#primeras dos same que arriba
 	var=1
 	h=tf-ti
 
-	k1x=fx(vi)
-	k1v=fv(ti,xi,vi,m,n)
-	xiv,viv,k1x,k1v=rk1(k1x,k1v,xi,vi,n,var,h)
+	#Las dos k son listas de listas
+	k1x=v0
+	k1v=acel(ti,p0,v0,m,n)
+	p1,v1,k1x,k1v=rk1(k1x,k1v,p0,v0,n,var,h)
 
-	k2x=fx(viv)
-	k2v=fv(ti+h/2.0,xiv,viv,m,n)	
-	xiv,viv,k2x,k2v=rk1(k2x,k2v,xi,vi,n,var,h)
+	k2x=v1
+	k2v=acel(ti+h/2.0,p1,v1,m,n)	
+	p1,v1,k2x,k2v=rk1(k2x,k2v,p0,v0,n,var,h)
 	
 	var=0
-	k3x=fx(viv)
-	k3v=fv(ti+h/2.0,xiv,viv,m,n)
-	xiv,viv,k3x,k3v=rk1(k3x,k3v,xi,vi,n,var,h)
+	k3x=v1
+	k3v=acel(ti+h/2.0,p1,v1,m,n)
+	p1,v1,k3x,k3v=rk1(k3x,k3v,p0,v0,n,var,h)
 
-	k4x=fx(viv)
-	k4v=fv(ti+h,xiv,viv,m,n)
-	xiv,viv,k4x,k4v=rk1(k4x,k4v,xi,vi,n,var,h)
+	k4x=v1
+	k4v=acel(ti+h,p1,v1,m,n)
+	p1,v1,k4x,k4v=rk1(k4x,k4v,p0,v0,n,var,h)
 	
-	xiv=rk2(k1x,k2x,k3x,k4x,xi,n)
-	xf=xiv
+	p1=rk2(k1x,k2x,k3x,k4x,p0,n)
+	pf=p1
 	
-	viv=rk2(k1v,k2v,k3v,k4v,vi,n)
-	vf=viv
+	v1=rk2(k1v,k2v,k3v,k4v,v0,n)
+	vf=v1
 
-	return xf,vf
+	return pf,vf
 
+#rk4(fv1,fx,xic,vic,tf,ti,mc,nc)
+#fv1 y fx las funciones
+#xic -> lista de listas de posicion inicial
+#vic -> lista de listas de velocidades inicial
+#tf y ti tiempo final e inicial
+#lista de masas (mc)
+#nc lista de cuerpos
 
-posiciones=np.array([[0,3],[0,2],[0,-2],[1,1]])
-a=rk1(posiciones,posiciones,posiciones,posiciones,4,0,7)
-#print a
-
+#posiciones=np.array([[0,3],[0,2],[0,-2],[1,1]])
+#a=rk1(posiciones,posiciones,posiciones,posiciones,4,0,7)
+tf=30
+ti=10
+m=[1,20000]
+n=2
+p0=np.array([[0,0],[5,0]])
+v0=np.array([[0,0],[0,0]])
+while True:
+	a,b=rk(p0,v0,tf,ti,m,n)
+	print "posiciones"
+	print a
+	print
+	print "velocidades"
+	print b
+	p0=a
+	v0=b
+	print
+	print
+	sleep(1)
