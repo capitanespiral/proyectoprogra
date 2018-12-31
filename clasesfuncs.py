@@ -11,7 +11,7 @@ from time import *
 
 class cuerpo:
 	#m masa (acepta float), v velocidad (acepta lista, origen en el cuerpo en si, definida cartesiana), p posición (acepta lista, definida de forma polar)
-	def __init__(self,p,m,v):
+	def __init__(self,p,v,m):
 		#agregar metodo que p cambie en función de v
 		self.p=p
 		self.x=float(p[0])
@@ -119,31 +119,6 @@ def rk(p0,v0,tf,ti,m,n):
 
 	return pf,vf
 
-#rk4(fv1,fx,xic,vic,tf,ti,mc,nc)
-#fv1 y fx las funciones
-#xic -> lista de listas de posicion inicial
-#vic -> lista de listas de velocidades inicial
-#tf y ti tiempo final e inicial
-#lista de masas (mc)
-#nc lista de cuerpos
 
-#posiciones=np.array([[0,3],[0,2],[0,-2],[1,1]])
-#a=rk1(posiciones,posiciones,posiciones,posiciones,4,0,7)
 tf=30
 ti=10
-m=[1,20000]
-n=2
-p0=np.array([[0,0],[5,0]])
-v0=np.array([[0,0],[0,0]])
-while True:
-	a,b=rk(p0,v0,tf,ti,m,n)
-	print "posiciones"
-	print a
-	print
-	print "velocidades"
-	print b
-	p0=a
-	v0=b
-	print
-	print
-	sleep(1)
