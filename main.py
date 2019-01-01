@@ -5,6 +5,8 @@ import random as rm
 import numpy as np
 from time import sleep
 n=input("Cuantos cuerpitos? ")
+ti=input("Tiempo inicial? ")
+tf=input("Tiempo final? ")
 cuerpitos=[]
 p0=[]
 v0=[]
@@ -32,7 +34,7 @@ print
 raw_input("Presiona enter para comenzar")
 
 while True:
-	a,b=rk(p0,v0,tf,ti,m,n)
+	a,b=rk4(p0,v0,tf,ti,m,n)
 	print "Posiciones"
 	print a
 	print
