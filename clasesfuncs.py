@@ -49,76 +49,73 @@ class cuerpo:
 				ang=pi+atan(self.y/self.x)
 		return [r,ang]
 
+
 vector=[0.0,0.0]
-def acel(t,p,v,m,n):
-	#función que da aceleracion (segunda derivada de posición), recibe tiempo, posición (lista de listas de posiciones), velocidad inicial, masa y cantidad de partículas. 
-	d2p=np.array([vector]*n)
+def evaluar_diff(p,v,m,n):
+	#función que da aceleracion (segunda derivada de posición), osea es evaluar la diferencial, recibe tiempo, posición (lista de listas de posiciones), velocidad inicial, masa y cantidad de partículas. 
+#Tiempo no es necesario
+	evalua=np.array([vector]*n)
 	G=-6.673884e-11
 	#d=distancia en la cual la velocidad ya no aumenta?
 	for i in range(0,n):
 		for j in range(0,n):
 			if j!=i:
 				Rij=np.linalg.norm(p[i]-p[j])
-				d2p[i]=d2p[i]+G*m[j]*(p[i]-p[j])/pow(Rij,3)
+				evalua[i]=evalua[i]+G*m[j]*(p[i]-p[j])/pow(Rij,3)
 				
-	return d2p
-
-#def fx(v):
-#	return v
+	return evalua
 				
-def rk1(kp,kv,p0,v0,n,var,h):
+def camb_pt_eval(kp_i,kv_i,p_i,v_i,n,var,h):
 	#las cuatro primeras listas de listas,kp(kix) -> k de las posiciones, kv(kiv) -> k de las velocidades. p0(xio)->posiciones iniciales, v0(vio) -> velocidades iniciales. n cantidad de cuerpos, var NIIDEA, h?
-	kp1=h*kp
-	kv1=h*kv
-	p1=np.array([vector]*n)
-	v1=np.array([vector]*n)
+	kp_i_h=h*kp_i
+	kv_i_h=h*kv_i
+	p_i_=np.array([vector]*n)
+	v_i_=np.array([vector]*n)
 	for i in range(0,n):
 		if var==1:
-			p1[i]=p0[i]+kp1[i]/2.0
-			v1[i]=v0[i]+kv1[i]/2.0
+			p_i_[i]=p_i[i]+kp_i_h[i]/2.0
+			v_i_[i]=v_i[i]+kv_i_h[i]/2.0
 		else:
-			p1[i]=p0[i]+kp1[i]
-			v1[i]=v0[i]+kv1[i]
-	return p1,v1,kp1,kv1
+			p_i_[i]=p_i[i]+kp_i_h[i]
+			v_i_[i]=v_i[i]+kv_i_h[i]
+	return p_i_,v_i_,kp_i_h,kv_i_h
 
-def rk2(k1,k2,k3,k4,p0,n):
-	#las cinco primeras lista de listas, p0 y n same que arriba, k son las k para rukkatacaputa
-	p1=np.array([vector]*n)
+def r_final(k1_h,k2_h,k3_h,k4_h,p_v_i,n):
+	#las cinco primeras lista de listas, p0 y n same que arriba, k son las k para rukkatacaputa, p_v significa que sirve para p o v.
+	p_v_i_1=np.array([vector]*n)
 	for i in range(0,n):
-		p1[i]=p0[i]+(k1[i]+2*(k2[i]+k3[i])+k4[i])/6.0
-	return p1
+		p_v_i_1[i]=p_v_i[i]+(k1_h[i]+2*(k2_h[i]+k3_h[i])+k4_h[i])/6.0
+	return p_v_i_1
 
-def rk(p0,v0,tf,ti,m,n):
+def rk4(p_i,v_i,tf,ti,m,n):
 	#primeras dos same que arriba
-	var=1
 	h=tf-ti
-
 	#Las dos k son listas de listas
-	k1x=v0
-	k1v=acel(ti,p0,v0,m,n)
-	p1,v1,k1x,k1v=rk1(k1x,k1v,p0,v0,n,var,h)
-
-	k2x=v1
-	k2v=acel(ti+h/2.0,p1,v1,m,n)	
-	p1,v1,k2x,k2v=rk1(k2x,k2v,p0,v0,n,var,h)
-	
+	#Obtenemos cada k1
+	kp_1=v_i
+	kv_1=evaluar_diff(p_i,v_i,m,n)
+	#Cambiamos pt de evaluación para obtener k2
+	var=1
+	p_i_,v_i_,kp_1_h,kv_1_h=camb_pt_eval(kp_1,kv_1,p_i,v_i,n,var,h)
+	#Calculamos k2 en el punto medio
+	kp_2=v_i_
+	kv_2=evaluar_diff(p_i_,v_i_,m,n)
+	#Cambiamos punto de evaluación para obtener k3
+	p_i_,v_i_,kp_2_h,kv_2_h=camb_pt_eval(kp_2,kv_2,p_i,v_i,n,var,h)
+	#Calculamos k3 en el punto medio
+	kp_3=v_i_
+	kv_3=evaluar_diff(p_i_,v_i_,m,n)
+	#Cambiamos punto de evaluación para obtener k4
 	var=0
-	k3x=v1
-	k3v=acel(ti+h/2.0,p1,v1,m,n)
-	p1,v1,k3x,k3v=rk1(k3x,k3v,p0,v0,n,var,h)
-
-	k4x=v1
-	k4v=acel(ti+h,p1,v1,m,n)
-	p1,v1,k4x,k4v=rk1(k4x,k4v,p0,v0,n,var,h)
+	p_i_,v_i_,kp_3_h,kv_3_h=camb_pt_eval(kp_3,kv_3,p_i,v_i,n,var,h)
+	#Calculamos k4 al final
+	kp_4=v_i_
+	kv_4=evaluar_diff(p_i_,v_i_,m,n)
+	kp_4_h,kv_4_h=kp_4*h,kv_4*h
 	
-	p1=rk2(k1x,k2x,k3x,k4x,p0,n)
-	pf=p1
+	p_i_1=r_final(kp_1_h,kp_2_h,kp_3_h,kp_4_h,p_i,n)
 	
-	v1=rk2(k1v,k2v,k3v,k4v,v0,n)
-	vf=v1
+	v_i_1=r_final(kv_1_h,kv_2_h,kv_3_h,kv_4_h,v_i,n)
 
-	return pf,vf
+	return p_i_1,v_i_1
 
-
-tf=30
-ti=10
