@@ -5,42 +5,38 @@ import random as rm
 import numpy as np
 from time import sleep
 n=input("Cuantos cuerpitos? ")
-ti=input("Tiempo inicial? ")
-tf=input("Tiempo final? ")
+h=input("Largo de intervalo temporal? ")
+
 cuerpitos=[]
-p0=[]
-v0=[]
-m=[]
 
 for i in range(0,n):
 	a=cuerpo([rm.uniform(-10,10),rm.uniform(-10,10)],[rm.uniform(-10,10),rm.uniform(-10,10)],rm.uniform(1e10,2e10))
 	cuerpitos.append(a)
-	p0.append(a.p)
-	v0.append(a.v)
-	m.append(a.m)
-p0=np.array(p0)
-v0=np.array(v0)
-m=np.array(m)
 
+pos=np.array(map(lambda x: x.p,cuerpitos))
+vel=np.array(map(lambda x: x.v,cuerpitos))
+masas=np.array(map(lambda x: x.m,cuerpitos))
 print "Las posiciones iniciales son:"
-print p0
+print pos
 print
 print "Las velocidades iniciales son:"
-print v0
+print vel
 print
 print "Las masas:"
-print m
+print masas
 print
 raw_input("Presiona enter para comenzar")
 
 while True:
-	a,b=rk4(p0,v0,tf,ti,m,n)
+	p,v=rk4(pos,vel,h,masas,n)
+	cuerpitos=map(lambda w,x,y,z: w.cambios(x,y,z),cuerpitos,p,v,masas)
 	print "Posiciones"
-	print a
+	print p
 	print
 	print "Velocidades"
-	print b
+	print v
 	print
-	p0=a
-	v0=b
+	pos=p
+	vel=v
 	sleep(1)
+
