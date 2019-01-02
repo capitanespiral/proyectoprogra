@@ -4,28 +4,41 @@ from math import *
 import numpy as np
 from time import *
 #TODA LISTA USADA TIENE QUE SER ARRAY DE NUMPY
-#Definir método para que posición cambie segun velocidad ¿o tengo que definirlo con todo lo demás?
 #Definir choques
 #Definir tamaño en función de la masa
-#Definir cálculo de X a través de runge kutta
+
+#densidad=3132.375 promedio de los planetas del sistema solar
 
 class cuerpo:
-	#m masa (acepta float), v velocidad (acepta lista, origen en el cuerpo en si, definida cartesiana), p posición (acepta lista, definida de forma polar)
+	#m masa (acepta float), v velocidad (acepta lista, origen en el cuerpo en si, definida cartesiana), p posición (acepta lista, definida de forma cartesiana)
 	def __init__(self,p,v,m):
-		#agregar metodo que p cambie en función de v
+		#Posición
 		self.p=p
-		self.x=float(p[0])
-		self.y=float(p[1])
+		self.x=float(self.p[0])
+		self.y=float(self.p[1])
 		#masa
 		self.m=float(m)
 		#velocidad y sus componentes
 		self.v=v
-		self.vx=v[0]
-		self.vy=v[1]
+		self.vx=float(self.v[0])
+		self.vy=float(self.v[1])
 		#Momentum lineal
 		self.mom=[self.m*self.vx,self.m*self.vy]
-		#self.R=? -> agregar radio del cuerpo (tamaño) en función de su masa
-	def ppol(self): #Mantener esto como método o agregarlo como atributos?
+		self.R=((3*self.m)/(4*pi*3132.375))**(1/3)
+	#Cambios de atributos
+	def cambios(self,p,v,m):
+		self.p=p	
+		self.x=float(self.p[0])
+		self.y=float(self.p[1])
+		self.m=float(m)
+		self.v=v		
+		self.vx=float(self.v[0])
+		self.vy=float(self.v[1])				
+		self.mom=[self.m*self.vx,self.m*self.vy]
+		self.R=((3*self.m)/(4*pi*3132.375))**(1/3)
+		return self
+	#Coordenadas polares
+	def ppol(self):
 		r=sqrt(self.x**2+self.y**2)
 		if self.x==0:
 			if self.y>0:
@@ -52,8 +65,7 @@ class cuerpo:
 
 vector=[0.0,0.0]
 def evaluar_diff(p,v,m,n):
-	#función que da aceleracion (segunda derivada de posición), osea es evaluar la diferencial, recibe tiempo, posición (lista de listas de posiciones), velocidad inicial, masa y cantidad de partículas. 
-#Tiempo no es necesario
+	#función que evalua la diferencial principal. p y v listas de listas, m solo lista, n natural
 	evalua=np.array([vector]*n)
 	G=-6.673884e-11
 	#d=distancia en la cual la velocidad ya no aumenta?
@@ -66,7 +78,7 @@ def evaluar_diff(p,v,m,n):
 	return evalua
 				
 def camb_pt_eval(kp_i,kv_i,p_i,v_i,n,var,h):
-	#las cuatro primeras listas de listas,kp(kix) -> k de las posiciones, kv(kiv) -> k de las velocidades. p0(xio)->posiciones iniciales, v0(vio) -> velocidades iniciales. n cantidad de cuerpos, var NIIDEA, h?
+	#cambia punto donde se evalua diferencial, 4 primeras listas de listas, n natural, var natural, h escalar
 	kp_i_h=h*kp_i
 	kv_i_h=h*kv_i
 	p_i_=np.array([vector]*n)
@@ -81,16 +93,14 @@ def camb_pt_eval(kp_i,kv_i,p_i,v_i,n,var,h):
 	return p_i_,v_i_,kp_i_h,kv_i_h
 
 def r_final(k1_h,k2_h,k3_h,k4_h,p_v_i,n):
-	#las cinco primeras lista de listas, p0 y n same que arriba, k son las k para rukkatacaputa, p_v significa que sirve para p o v.
+	#las cinco primeras lista de listas, n natural, p_v_i -> entrará p o v y saldrá resultado final de rk4.
 	p_v_i_1=np.array([vector]*n)
 	for i in range(0,n):
 		p_v_i_1[i]=p_v_i[i]+(k1_h[i]+2*(k2_h[i]+k3_h[i])+k4_h[i])/6.0
 	return p_v_i_1
 
-def rk4(p_i,v_i,tf,ti,m,n):
-	#primeras dos same que arriba
-	h=tf-ti
-	#Las dos k son listas de listas
+def rk4(p_i,v_i,h,m,n):
+	#Las dos primeras listas de listas
 	#Obtenemos cada k1
 	kp_1=v_i
 	kv_1=evaluar_diff(p_i,v_i,m,n)
@@ -118,4 +128,5 @@ def rk4(p_i,v_i,tf,ti,m,n):
 	v_i_1=r_final(kv_1_h,kv_2_h,kv_3_h,kv_4_h,v_i,n)
 
 	return p_i_1,v_i_1
+
 
