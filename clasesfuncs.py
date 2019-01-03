@@ -6,7 +6,7 @@ from time import *
 #TODA LISTA USADA TIENE QUE SER ARRAY DE NUMPY
 #Definir choques
 #Definir tamaño en función de la masa
-
+#HACER LISTA GENERAL DE ATRIBUTOS
 #densidad=3132.375 promedio de los planetas del sistema solar
 
 class cuerpo:
@@ -35,7 +35,7 @@ class cuerpo:
 		self.vx=float(self.v[0])
 		self.vy=float(self.v[1])				
 		self.mom=[self.m*self.vx,self.m*self.vy]
-		self.R=((3*self.m)/(4*pi*3132.375))**(1/3)
+		self.R=((3*self.m)/(4*pi*3132.375))**(1/3.0)
 		return self
 	#Coordenadas polares
 	def ppol(self):
@@ -64,13 +64,56 @@ class cuerpo:
 
 
 vector=[0.0,0.0]
+def evalua_dists(p,n,cuerpitos):
+	#Reciba lista de lista de posiciones.
+	paraunir=[]
+	paraunirtotal=[]
+	for i in range(n):
+		for j in range(n):
+			if j!=i:
+				Rij=np.linalg.norm(p[i]-p[j])
+				if Rij<=(cuerpitos[i].R+cuerpitos[j].R):
+					unir=[i,j]
+					unir.sort()
+					if unir not in paraunir:
+						#Genero lista que guarda pares ordenados representando el posible "choque" (menos de los dos radios)
+						paraunir.append(unir)
+	#Seleccionando a los que interactuan entre si
+	while len(paraunir)!=0:
+		pegaditos=[]
+		pegaditos.append(paraunir[0][0])
+		pegaditos1=[]
+		while len(pegaditos1)!=len(pegaditos):
+			pegaditos1=pegaditos[:]
+			for j in pegaditos:
+				for h in paraunir:
+					if j==h[0]:
+						a=h[:]
+						paraunir.remove(h)
+						if a[1] not in pegaditos:
+							pegaditos.append(a[1])
+					elif j==h[1]:
+						a=h[:]
+						paraunir.remove(h)
+						if a[0] not in pegaditos:
+							pegaditos.append(a[0])
+		#Voy guardando cada lista conteniendo los que interactuan entre si.				
+		paraunirtotal.append(pegaditos)
+		
+
+	return paraunirtotal
+
+#def choques(paraunir):
+	
+	
+
 def evaluar_diff(p,v,m,n):
 	#función que evalua la diferencial principal. p y v listas de listas, m solo lista, n natural
 	evalua=np.array([vector]*n)
 	G=-6.673884e-11
 	#d=distancia en la cual la velocidad ya no aumenta?
-	for i in range(0,n):
-		for j in range(0,n):
+	for i in range(n):
+		for j in range(n):
 			if j!=i:
 				Rij=np.linalg.norm(p[i]-p[j])
 				evalua[i]=evalua[i]+G*m[j]*(p[i]-p[j])/pow(Rij,3)
@@ -83,7 +126,7 @@ def camb_pt_eval(kp_i,kv_i,p_i,v_i,n,var,h):
 	kv_i_h=h*kv_i
 	p_i_=np.array([vector]*n)
 	v_i_=np.array([vector]*n)
-	for i in range(0,n):
+	for i in range(n):
 		if var==1:
 			p_i_[i]=p_i[i]+kp_i_h[i]/2.0
 			v_i_[i]=v_i[i]+kv_i_h[i]/2.0
@@ -128,5 +171,3 @@ def rk4(p_i,v_i,h,m,n):
 	v_i_1=r_final(kv_1_h,kv_2_h,kv_3_h,kv_4_h,v_i,n)
 
 	return p_i_1,v_i_1
-
-
