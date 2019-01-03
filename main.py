@@ -35,7 +35,8 @@ while True:
 	print
 	print "Velocidades"
 	print v
-	print
+	print "##############################################".center(30)
+	colisionar=evalua_dists(p,n,cuerpitos)
 	pos=p
 	vel=v
 	sleep(1)
