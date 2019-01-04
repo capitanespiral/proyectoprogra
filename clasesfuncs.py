@@ -2,29 +2,30 @@
 #-*- coding:utf-8 -*-
 from math import *
 import numpy as np
-from time import *
 #TODA LISTA USADA TIENE QUE SER ARRAY DE NUMPY
 #Definir choques
-#Definir tamaño en función de la masa
 #HACER LISTA GENERAL DE ATRIBUTOS
 #densidad=3132.375 promedio de los planetas del sistema solar
+#modificar listas por generadores, compresion de listas, etc... (tambien en main)
+#Crear clase estrella
 
 class cuerpo:
 	#m masa (acepta float), v velocidad (acepta lista, origen en el cuerpo en si, definida cartesiana), p posición (acepta lista, definida de forma cartesiana)
-	def __init__(self,p,v,m):
+	def __init__(self,p,v,m,d=3132.375):
 		#Posición
 		self.p=p
 		self.x=float(self.p[0])
 		self.y=float(self.p[1])
-		#masa
+		#masa y densidad
 		self.m=float(m)
+		self.d=float(d)
 		#velocidad y sus componentes
 		self.v=v
 		self.vx=float(self.v[0])
 		self.vy=float(self.v[1])
 		#Momentum lineal
 		self.mom=[self.m*self.vx,self.m*self.vy]
-		self.R=((3*self.m)/(4*pi*3132.375))**(1/3)
+		self.R=((3*self.m)/(4*pi*self.d))**(1/3)
 	#Cambios de atributos
 	def cambios(self,p,v,m):
 		self.p=p	
@@ -35,7 +36,7 @@ class cuerpo:
 		self.vx=float(self.v[0])
 		self.vy=float(self.v[1])				
 		self.mom=[self.m*self.vx,self.m*self.vy]
-		self.R=((3*self.m)/(4*pi*3132.375))**(1/3.0)
+		self.R=((3*self.m)/(4*pi*self.d))**(1/3.0)
 		return self
 	#Coordenadas polares
 	def ppol(self):
@@ -171,3 +172,7 @@ def rk4(p_i,v_i,h,m,n):
 	v_i_1=r_final(kv_1_h,kv_2_h,kv_3_h,kv_4_h,v_i,n)
 
 	return p_i_1,v_i_1
+
+
+
+
