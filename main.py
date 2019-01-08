@@ -13,7 +13,7 @@ crear=raw_input("Crear sistema o generar random? (Enter, genera random, cualquie
 cuerpitos=[]
 if crear=="":
 	for i in range(n):
-		a=cuerpo([rm.uniform(-10,10),rm.uniform(-10,10)],[rm.uniform(-10,10),rm.uniform(-10,10)],rm.uniform(1e10,2e10),rm.uniform(100,7000))
+		a=cuerpo([rm.uniform(-10,10),rm.uniform(-10,10)],[rm.uniform(-10,10),rm.uniform(-10,10)],rm.uniform(1e10,2e10))
 		cuerpitos.append(a)
 else:
 	i=1
@@ -48,6 +48,7 @@ print
 raw_input("Presiona enter para comenzar")
 i=1
 while True:
+#Distinta cantidad de elementos en el map parece :O
 	p,v=rk4(pos,vel,h,masas,n)
 	cuerpitos=map(lambda w,x,y,z: w.cambios(x,y,z),cuerpitos,p,v,masas)
 	print "#################"+"Segundo "+str(i*h)+"#############################"
@@ -57,9 +58,23 @@ while True:
 	print "Velocidades"
 	print v
 	print
-	i+=1
+	print "Masas"
+	print masas
+	print
+	print "Momentums"
+	print np.array(map(lambda x:x.mom,cuerpitos))
+	print
 	colisionar=evalua_dists(p,n,cuerpitos)
-	pos=p
-	vel=v
+	print colisionar
+	cuerpitos=choques(colisionar,cuerpitos)
+	pos=np.array(map(lambda x: x.p,cuerpitos))
+	print pos
+	vel=np.array(map(lambda x: x.v,cuerpitos))
+	print vel
+	masas=np.array(map(lambda x: x.m,cuerpitos))
+	print masas
+	momentum=np.array(map(lambda x: x.mom,cuerpitos))
+	print momentum
+	n=len(cuerpitos)
+	i+=1
 	sleep(1)
-
