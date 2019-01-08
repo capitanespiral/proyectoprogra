@@ -11,7 +11,7 @@ import numpy as np
 
 class cuerpo:
 	#m masa (acepta float), v velocidad (acepta lista, origen en el cuerpo en si, definida cartesiana), p posición (acepta lista, definida de forma cartesiana)
-	def __init__(self,p,v,m,d=3132.375):
+	def __init__(self,p=[0.0,0.0],v=[0.0,0.0],m=1.0,d=3132.375):
 		#Posición
 		self.p=p
 		self.x=float(self.p[0])
@@ -63,7 +63,30 @@ class cuerpo:
 				ang=pi+atan(self.y/self.x)
 		return [r,ang]
 
+	def unionchoque(self,otros):
+		totalmasa=0.0
+		momentumtotal=np.array([0.0,0.0])
+		sumapos=np.array([0.0,0.0])
+		densidad=0.0
+		for i in otros:
+			totalmasa=totalmasa+i.m
+			momentumtotal=momentumtotal+np.array(i.mom)
+			sumapos=sumapos+i.p
+			densidad+=i.d
 
+		self.m=totalmasa
+		self.mom=momentumtotal
+		self.p=sumapos/float(len(otros))
+		self.x=self.p[0]
+		self.y=self.p[1]
+		self.v=self.mom/float(self.m)
+		self.vx=float(self.v[0])
+		self.vy=float(self.v[1])
+		self.R=((3*self.m)/(4*pi*self.d))**(1/3)
+		return self
+		
+		
+		
 vector=[0.0,0.0]
 def evalua_dists(p,n,cuerpitos):
 	#Reciba lista de lista de posiciones.
@@ -100,12 +123,26 @@ def evalua_dists(p,n,cuerpitos):
 							pegaditos.append(a[0])
 		#Voy guardando cada lista conteniendo los que interactuan entre si.				
 		paraunirtotal.append(pegaditos)
-		
-
 	return paraunirtotal
 
-#def choques(paraunir):
+
+def choques(paraunirtotal,cuerpitos):
+	#función que crea objetos por unirlos a través de choques
+	listaplana=[]
+	nuevoscuerpos=[]
+	for colisionados in paraunirtotal:
+		cuerposo=[]
+		for j in colisionados:
+			listaplana.append(j)
+			cuerposo.append(cuerpitos[j])
+		a=cuerpo()
+		b=a.unionchoque(cuerposo)
+		cuerpitos.append(b)
+	for j in range(len(cuerpitos)):
+		if j not in listaplana:
+			nuevoscuerpos.append(cuerpitos[j])
 	
+	return nuevoscuerpos
 	
 
 def evaluar_diff(p,v,m,n):
@@ -172,6 +209,7 @@ def rk4(p_i,v_i,h,m,n):
 	v_i_1=r_final(kv_1_h,kv_2_h,kv_3_h,kv_4_h,v_i,n)
 
 	return p_i_1,v_i_1
+
 
 
 
