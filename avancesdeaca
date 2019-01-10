@@ -1,0 +1,8 @@
+rukkaputaadaptativo parece funcionar en algunas condiciones. A veces un error es tan pequeño que llega a cero y explota y los tau se disparan
+Ni idea de cuando pasa esto, ¿Será importante? -> creo tiene que ver con posiciones muy parecidas de un punto a otro, ergo, bajas velocidades
+si es esto, es preocupante for us, pues las colisiones seguramente provoquen eso.
+
+También cambié dimensiones, a UA, año y kg
+en las clases se sacaron atributos no usados y se optimizaron los bucles
+en main ligeros cambios, el mas importante es (ademas de usar rkadapatativo) sistemas predefinidos, en que solo va el sol
+Pronto, incluida opción de guardar gráfico (osea es zona de pruebas)
