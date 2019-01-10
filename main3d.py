@@ -4,30 +4,34 @@ from clasesfuncs3d import *
 import random as rm
 import numpy as np
 from time import sleep
-n=input("Cuantos cuerpitos? ")
-h=input("Largo de intervalo temporal? ")
-crear=raw_input("Crear sistema o generar random? (Enter, genera random, cualquier otro crear) ")
+crear=raw_input("Crear sistema o generar random? (Enter, genera random, 1 sistemas precreados, otro permite crear) ")
+tau=input("Tiempo de paso? ")
+#Unidades año, UA y kg
 #Agregar densidad (implica cambiar varias weas de clases
-#¿Agregar metodos de string para recibir el par ordenado al touch?
 
+tiempo=0.0
 cuerpitos=[]
 if crear=="":
-	for i in range(n):
+	n=input("Cuantos cuerpitos? ")
+	for i in Range(n):
 		a=cuerpo([rm.uniform(-10,10),rm.uniform(-10,10),rm.uniform(-10,10)],[rm.uniform(-10,10),rm.uniform(-10,10),rm.uniform(-10,10)],rm.uniform(1e10,2e10))
 		cuerpitos.append(a)
+elif crear=="1":
+	#Sistemas predefenidos, por ahora solo tierra y sol
+	cuerpitos.append(cuerpo([1,0,0],[0,6.27768770053476,0],5.07e24,5515))
+	cuerpitos.append(cuerpo([0,0,0],[0,0,0],1.9891e30,1411))
+	n=2
+	tau=0.01
 else:
+	n=input("Cuantos cuerpitos? ")
 	i=1
 	while i<=n:
 		masitas=float(input("Masa cuerpo "+str(i)+": "))
 		densidad=float(input("Densidad cuerpo "+str(i)+": "))
-		posx=float(input("Pos. inicial X cuerpo "+str(i)+": "))
-		posy=float(input("Pos. inicial Y cuerpo "+str(i)+": "))
-		posz=float(input("Pos. inicial Z cuerpo "+str(i)+": "))
-		velx=float(input("Vel. inicial X cuerpo "+str(i)+": "))
-		vely=float(input("Vel. inicial Y cuerpo "+str(i)+": "))
-		velz=float(input("Vel. inicial Z cuerpo "+str(i)+": "))
+		pos=raw_input("Pos. inicial cuerpo "+str(i)+": ")
+		vel=raw_input("Vel. inicial cuerpo "+str(i)+": ")
 		print
-		a=cuerpo([posx,posy,posz],[velx,vely,velz],masitas,densidad)
+		a=cuerpo(map(lambda x: float(x),pos.split(",")),map(lambda x: float(x),vel.split(",")),masitas,densidad)
 		cuerpitos.append(a)
 		i+=1
 
@@ -48,12 +52,13 @@ print "Las densidades:"
 print densidades
 print
 raw_input("Presiona enter para comenzar")
-i=1
+
 while True:
 #Distinta cantidad de elementos en el map parece :O
-	p,v=rk4(pos,vel,h,masas,n)
+	p,v,tiempo,tau=rka(pos,vel,tiempo,tau,masas,n)
+	print "tau"+str(tau)
 	cuerpitos=map(lambda w,x,y,z: w.cambios(x,y,z),cuerpitos,p,v,masas)
-	print "#################"+"Segundo "+str(i*h)+"#############################"
+	print "#################"+"Año "+str(tiempo)+"#############################"
 	print "Posiciones"
 	print p
 	print
@@ -67,17 +72,21 @@ while True:
 	print np.array(map(lambda x:x.mom,cuerpitos))
 	print
 	colisionar=evalua_dists(p,n,cuerpitos)
+	print "colisiones"
 	print colisionar
 	cuerpitos=choques(colisionar,cuerpitos)
 	pos=np.array(map(lambda x: x.p,cuerpitos))
+	print "nuevas posiciones"
 	print pos
 	vel=np.array(map(lambda x: x.v,cuerpitos))
+	print "nuevas velocidades"
 	print vel
 	masas=np.array(map(lambda x: x.m,cuerpitos))
+	print "nuevas masas"
 	print masas
 	momentum=np.array(map(lambda x: x.mom,cuerpitos))
+	print "nuevo momentum"
 	print momentum
 	n=len(cuerpitos)
-	i+=1
 	sleep(1)
 
