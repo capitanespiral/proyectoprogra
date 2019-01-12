@@ -75,14 +75,14 @@ class cuerpo:
 #Arreglar unión con densidad ponderada
 	def unionchoque(self,otros):
 		totalmasa=0.0
-		densidad=0.0
+		#densidad=0.0
 		momentumtotal=np.array([0.0]*3)
 		sumapos=np.array([0.0]*3)
 		for i in otros:
 			totalmasa+=i.m
 			momentumtotal+=np.array(i.mom)
 			sumapos+=i.p
-			densidad+=i.d
+			#densidad+=i.d
 
 		self.m=totalmasa
 		self.mom=momentumtotal
@@ -174,12 +174,14 @@ def evaluar_diff(p,v,m,n):
 	#función que evalua la diferencial principal. p y v listas de listas, m solo lista, n natural
 	evalua=np.array([vector]*n)
 	G=-1.9812727537285508e-29
-	#d=distancia en la cual la velocidad ya no aumenta?
+	#d=0.0003342293561134223
 	for i in Range(n):
 		for j in Range(n):
 			if j!=i:
 				Rij=np.linalg.norm(p[i]-p[j])
+				#if Rij>d: esta linea anula velocidades anteriores, debiese mantenerla pues
 				evalua[i]=evalua[i]+G*m[j]*(p[i]-p[j])/pow(Rij,3)
+
 				
 	return evalua
 				
@@ -227,48 +229,65 @@ def rk4(p_i,v_i,tiempo,h,m,n):
 
 	return p_i_1,v_i_1
 
-def rka(p,v,tiempo,tau,m,n):
+
+def rka(p,v,tiempo_actual,tau,m,n,pasomaximo):
+	#global pasomaximo
 	adaptErr=1e-3
-	tSave = tiempo
-	## factores de seguridad
+	# factores de seguridad
 	safe1 = 0.9
-	safe2 = 4.0
+	safe2 = 1.1
 	maxTray=100
 	for iTray in range(maxTray):
-		## Tomemos dos pequennos pasos en el tiempo
+		# Tomemos dos pequennos pasos en el tiempo
 		half_tau = 0.5*tau
-		xSmall,vSmall=rk4(p,v, tSave, half_tau,m,n)
-		tiempo = tSave + half_tau
-		xSmall,vSmall=rk4(xSmall,vSmall, tiempo, half_tau,m,n)
-		## Tomemos un solo tiempo grande
-		xBig,vBig=rk4(p,v, tSave, tau,m,n)
-		## Calculemos el error de truncamiento estimado
-		erroRatiox = 0.0
-		erroRatiov=0.0
+		xSmall,vSmall=rk4(p,v, tiempo_actual, half_tau,m,n)
+		tiempo_sig=tiempo_actual+half_tau
+		xSmall,vSmall=rk4(xSmall,vSmall, tiempo_sig, half_tau,m,n)
+		# Tomemos un solo tiempo grande
+		xBig,vBig=rk4(p,v, tiempo_actual, tau,m,n)
+		# Calculemos el error de truncamiento estimado
+		#erroRatiox = 0.0
+		#erroRatiov=0.0
 		eps = 1.0e-16
+		errores=[]
 		for i in Range(n):
 			for j in Range(3):
-				scale = adaptErr*(abs(xSmall[i][j])+abs(xBig[i][j]))/2.0
-				xDiff = xSmall[i][j]-xBig[i][j]
-				ratiox = abs(xDiff)/(scale+eps)
-				if erroRatiox <= ratiox :
-					erroRatiox=ratiox
+				scalex = adaptErr*(abs(xSmall[i][j])+abs(xBig[i][j]))/2.0
+				scalev=adaptErr*(abs(vSmall[i][j])+abs(vBig[i][j]))/2.0
+				error_truncax = vSmall[i][j]-vBig[i][j]
+				error_truncav = xSmall[i][j]-xBig[i][j]
+				ratiox = abs(error_truncax)/(scalex+eps)
+				ratiov= abs(error_truncav)/(scalev+eps)
+				if ratiox==0.0:
+					ratiox=eps
+				if ratiov==0.0:
+					ratiov=eps
+				errores.append(ratiox)
+				errores.append(ratiov)
+		ratio=max(errores)
+				#if erroRatiox <= ratiox :
+				#	erroRatiox=ratiox
 		
-	## Estimamos el nuevo valor de tau (incluyendo factores de seguridad)
-		tau_old= tau
-		print "errorRatiox"+str(erroRatiox)
-		tau = safe1*tau_old*math.pow(erroRatiox,-0.20)
-		if tau <= tau_old/safe2 :
-			tau=tau_old/safe2
-		if tau >= safe2*tau_old :
-			tau=safe2*tau_old
-	## Si el error es aceptable regrese los valores computados
-		if erroRatiox < 1 :
-			return xSmall,vSmall,tiempo+tau,tau 
+	# Estimamos el nuevo valor de tau (incluyendo factores de seguridad)
+		tau_ant= tau
+		print "ratio"+str(ratio)
+		tau = safe1*tau_ant*pow(ratio,-0.20)
+		if tau < tau_ant/safe2 :
+			tau=tau_ant/safe2
+		elif tau > safe2*tau_ant :
+			tau=safe2*tau_ant
+		else:
+			tau=tau
+		if tau>pasomaximo:
+			tau=pasomaximo
+	# Si el error es aceptable regrese los valores computados
+		if ratiox < 1 :
+			return xSmall,vSmall,tiempo_actual+tau,tau 
 
 #numpy.array( [xSmall[0],xSmall[1],xSmall[2],xSmall[3], tiempo, tau] )
 	else:
 		print "Error: Runge-Kutta adaptativo fallo"
 		exit()
 
-
+#graficar fuerza, probar con dos cuerpos el tau (signo tau), comparar codigo c++ con este y el de python, graficar energita total para ver si se conserva. Probar definiendo pasos prefijados para distintas distancias, definir limite de aumento de velocidad. Medidas de seguridad generales. buscar archivos xml -> para definir opciones.
+#Talvez factores de seguridad afectan cuando se alejan (definir tau maximo). Runge kutta adaptativo no funciona con un solo cuerpo, y parace presentar problemas a distancias cercanas (aqui el error se vuelve cero rapido) y a largas distancias (aquí el tau crece como bestia)
