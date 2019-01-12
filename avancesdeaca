@@ -1,6 +1,6 @@
 rukkaputaadaptativo version casi-oficial, parece funcionar bien en todos los casos límites, se definio un paso máximo para que no estallara, se redujo la cantidad de aumento del paso
 se definió un valor minimo del error (si es que es cero se fija este para no quebrar el programa al dividir por eso)
-haria un poco mas de pruebas pero parece tener todo mucho sentido.
+haria un poco mas de pruebas pero parece tener todo mucho sentido. Además considera el mayor error DE TODOS LOS CASOS POSIBLES.
 
 tiene version preintegrada tierra-sol
 
