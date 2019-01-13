@@ -69,6 +69,9 @@ while True:
 	try:
 		tau=float(input("Tiempo de paso inicial? "))
 		pasomaximo=float(input("Tiempo de paso máximo? "))
+		tiempototal=raw_input("Tiempo max? (Enter para que sea infinito) ")
+		if tiempototal!="":
+			tiempototalisimo=float(tiempototal)
 		break
 	except:
 		print "Por favor ingresa un valor númerico\n"
@@ -128,12 +131,15 @@ while True:
 		print "colisiones"
 		print colisionar
 		cuerpitos=choques(colisionar,cuerpitos)
-		if n==len(cuerpitos):
+		if n!=len(cuerpitos):
 			masas=np.array(map(lambda x: x.m,cuerpitos))
 			momentum=np.array(map(lambda x: x.mom,cuerpitos))
 			pos=np.array(map(lambda x: x.p,cuerpitos))
 			vel=np.array(map(lambda x: x.v,cuerpitos))
 			n=len(cuerpitos)
+		if tiempototal!="":
+			if tiempototalisimo<tiempo:
+				break
 		#sleep(1)
 	except KeyboardInterrupt:
 		break
@@ -141,19 +147,19 @@ plt.plot(tiempito,ecinetica)
 plt.plot(tiempito,epotencial)
 plt.plot(tiempito,etotal)
 plt.savefig("energia.png")
+plt.show()
 plt.clf()
+
 
 for i in Range(len(posiciones[0])):
 	cadacuerpo=[]
 	for instante in posiciones:
 		cadacuerpo.append(instante[i])
-	plt.plot([x[0] for x in cadacuerpo],[x[1] for x in cadacuerpo],'+')
+	plt.plot([x[0] for x in cadacuerpo],[x[1] for x in cadacuerpo])
 plt.axis("equal")
 plt.savefig("orbita.png")
+plt.show()
 
 
 
-#plt.plot([x[0] for x in postierra],[x[1] for x in postierra],'x')
-#plt.plot([x[0] for x in possol],[x[1] for x in possol],'+')
-#plt.axis("equal")
-#plt.savefig("orbita.png")
+
