@@ -5,9 +5,7 @@ from clasesfuncs3d import *
 import random as rm
 import numpy as np
 from time import sleep
-crear=raw_input("Crear sistema o generar random? (Enter, genera random, 1 sistemas precreados, otro permite crear) ")
-tau=float(input("Tiempo de paso inicial? "))
-pasomaximo=float(input("Tiempo de paso máximo? "))
+crear=raw_input("Crear sistema o generar random? (Enter, genera random, 1 ingresa archivo con estado inicial, otro permite crear) ")
 #annos=float(input("Cuantos años? "))
 #Unidades año, UA y kg
 #Agregar densidad (implica cambiar varias weas de clases
@@ -15,18 +13,47 @@ pasomaximo=float(input("Tiempo de paso máximo? "))
 tiempo=0.0
 cuerpitos=[]
 if crear=="":
-	n=input("Cuantos cuerpitos? ")
+	while True:
+		try: 
+			n=input("Cuantos cuerpitos? ")
+			break
+		except:
+			print "Por favor ingresa un valor numérico\n"
+			continue
 	for i in Range(n):
 		a=cuerpo([rm.uniform(-1,1),rm.uniform(-1,1),rm.uniform(-1,1)],[rm.uniform(-10,10),rm.uniform(-10,10),rm.uniform(-10,10)],rm.uniform(1e10,2e10))
 		cuerpitos.append(a)
 elif crear=="1":
-	#Sistemas predefenidos, por ahora solo tierra y sol
-	cuerpitos.append(cuerpo([0,-1,0],[6.27768770053476,2,0],5.07e24,5515))
-	cuerpitos.append(cuerpo([0,0,0],[0,0,0],1.9891e30,1411))
-	n=2
-	tau=0.01
-else:
-	n=input("Cuantos cuerpitos? ")
+	while True:
+		try:
+			archivo=raw_input("¿Nombre de archivo con estado inicial? ")
+			est_inicial=open(archivo,"r")
+			info=[line.split() for line in est_inicial.readlines()]
+			est_inicial.close()
+			for lista in info:
+				posicion=[]
+				velocidad=[]
+				for i,elemento in enumerate(lista):
+					if i==0:
+						masa=float(elemento)
+					elif 1<=i<=3:
+						posicion.append(float(elemento))
+					else:
+						velocidad.append(float(elemento))
+				cuerpitos.append(cuerpo(posicion,velocidad,masa))
+			n=len(cuerpitos)
+			break
+		except IOError:
+			print "Disculpa, "+str(archivo)+" no existe o hubo un error inesperado al intentar abrirlo\n"
+			continue
+else:		
+	while True:
+		try: 
+			n=input("Cuantos cuerpitos? ")
+			break
+		except:
+			print "Por favor ingresa un valor numérico\n"
+			continue
 	i=1
 	while i<=n:
 		masitas=float(input("Masa cuerpo "+str(i)+": "))
@@ -37,6 +64,15 @@ else:
 		a=cuerpo(map(lambda x: float(x),pos.split(",")),map(lambda x: float(x),vel.split(",")),masitas)
 		cuerpitos.append(a)
 		i+=1
+
+while True:	
+	try:
+		tau=float(input("Tiempo de paso inicial? "))
+		pasomaximo=float(input("Tiempo de paso máximo? "))
+		break
+	except:
+		print "Por favor ingresa un valor númerico\n"
+		continue
 
 pos=np.array(map(lambda x: x.p,cuerpitos))
 vel=np.array(map(lambda x: x.v,cuerpitos))
@@ -56,8 +92,7 @@ print
 #print
 
 raw_input("Presione enter para comenzar")
-postierra=[]
-possol=[]
+posiciones=[]
 ecinetica=[]
 epotencial=[]
 etotal=[]
@@ -66,27 +101,20 @@ tiempito=[]
 while True:
 #Distinta cantidad de elementos en el map parece :O
 	try:
-		p,v,tiempo,tau=rka(pos,vel,tiempo,tau,masas,n,pasomaximo)
-		postierra.append(p[0])
-		possol.append(p[1])
+		pos,vel,tiempo,tau=rka(pos,vel,tiempo,tau,masas,n,pasomaximo)
+		posiciones.append(pos)
 		print "tau"+str(tau)
 		#Genera error cuando solo queda un cuerpo
-		cuerpitos=map(lambda w,x,y,z: w.cambios(x,y,z),cuerpitos,p,v,masas)
+		cuerpitos=map(lambda w,x,y,z: w.cambios(x,y,z),cuerpitos,pos,vel,masas)
 		print "#################"+"Año "+str(tiempo)+"#############################"
 		print "Posiciones"
-		print p
+		print pos
 		print
 		print "Velocidades"
-		print v
+		print vel
 		print
-		#print "Masas"
-		#print masas
-		#print
-		#print "Momentums"
-		#print np.array(map(lambda x:x.mom,cuerpitos))
-		#print
-		cinetica=energia_cinetica(v,cuerpitos,n)
-		potencial=energia_potencial(p,cuerpitos,n)
+		cinetica=energia_cinetica(vel,cuerpitos,n)
+		potencial=energia_potencial(pos,cuerpitos,n)
 		total=cinetica+potencial
 		ecinetica.append(cinetica)
 		epotencial.append(potencial)
@@ -96,23 +124,16 @@ while True:
 		print cinetica
 		print potencial
 		print total
-		colisionar=evalua_dists(p,n,cuerpitos)
+		colisionar=evalua_dists(pos,n,cuerpitos)
 		print "colisiones"
 		print colisionar
 		cuerpitos=choques(colisionar,cuerpitos)
-		pos=np.array(map(lambda x: x.p,cuerpitos))
-		#print "nuevas posiciones"
-		#print pos
-		vel=np.array(map(lambda x: x.v,cuerpitos))
-		#print "nuevas velocidades"
-		#print vel
-		masas=np.array(map(lambda x: x.m,cuerpitos))
-		#print "nuevas masas"
-		#print masas
-		momentum=np.array(map(lambda x: x.mom,cuerpitos))
-		#print "nuevo momentum"
-		#print momentum
-		n=len(cuerpitos)
+		if n==len(cuerpitos):
+			masas=np.array(map(lambda x: x.m,cuerpitos))
+			momentum=np.array(map(lambda x: x.mom,cuerpitos))
+			pos=np.array(map(lambda x: x.p,cuerpitos))
+			vel=np.array(map(lambda x: x.v,cuerpitos))
+			n=len(cuerpitos)
 		#sleep(1)
 	except KeyboardInterrupt:
 		break
@@ -121,7 +142,18 @@ plt.plot(tiempito,epotencial)
 plt.plot(tiempito,etotal)
 plt.savefig("energia.png")
 plt.clf()
-plt.plot([x[0] for x in postierra],[x[1] for x in postierra],'x')
-plt.plot([x[0] for x in possol],[x[1] for x in possol],'+')
+
+for i in Range(len(posiciones[0])):
+	cadacuerpo=[]
+	for instante in posiciones:
+		cadacuerpo.append(instante[i])
+	plt.plot([x[0] for x in cadacuerpo],[x[1] for x in cadacuerpo],'+')
 plt.axis("equal")
 plt.savefig("orbita.png")
+
+
+
+#plt.plot([x[0] for x in postierra],[x[1] for x in postierra],'x')
+#plt.plot([x[0] for x in possol],[x[1] for x in possol],'+')
+#plt.axis("equal")
+#plt.savefig("orbita.png")
