@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #-*- coding:utf-8 -*-
-from math import *
+import math
 import numpy as np
 #TODA LISTA USADA TIENE QUE SER ARRAY DE NUMPY
 #Definir choques
@@ -9,14 +9,12 @@ import numpy as np
 #modificar listas por generadores, compresion de listas, etc... (tambien en main)
 #Crear clase estrella
 
+#CREACIÓN DE CLASE DE CUERPO
 class cuerpo:
-	#m masa (acepta float), v velocidad (acepta lista, origen en el cuerpo en si, definida cartesiana), p posición (acepta lista, definida de forma cartesiana)
-	def __init__(self,p=[0.0,0.0,0.0],v=[0.0,0.0,0.0],m=1.0,d=3132.375):
+	#m masa (acepta float) [kg], v velocidad (acepta lista, origen en el cuerpo en si, definida cartesiana) [ua/año], p posición (acepta lista, definida de forma cartesiana) [ua]
+	def __init__(self,p=[0.0]*3,v=[0.0]*3,m=1.0,d=3132.375):
 		#Posición
 		self.p=p
-		self.x=float(self.p[0])
-		self.y=float(self.p[1])
-		self.z=float(self.p[2])
 		#masa y densidad
 		self.m=float(m)
 		self.d=float(d)
@@ -27,87 +25,124 @@ class cuerpo:
 		self.vz=float(self.v[2])
 		#Momentum lineal
 		self.mom=[self.m*self.vx,self.m*self.vy,self.m*self.vz]
-		self.R=((3*self.m)/(4*pi*self.d))**(1/3)
+		self.R=(3.348071936e-33*((3*self.m)/(4*math.pi*self.d)))**(1/3.0)
+
+		#self.x=float(self.p[0])
+		#self.y=float(self.p[1])
+		#self.z=float(self.p[2])
+
 	#Cambios de atributos
 	def cambios(self,p,v,m):
 		self.p=p	
-		self.x=float(self.p[0])
-		self.y=float(self.p[1])
-		self.z=float(self.p[2])
 		self.m=float(m)
-		self.v=v		
+		self.v=v			
 		self.vx=float(self.v[0])
 		self.vy=float(self.v[1])
-		self.vz=float(self.v[2])				
+		self.vz=float(self.v[2])	
 		self.mom=[self.m*self.vx,self.m*self.vy,self.m*self.vz]
-		self.R=((3*self.m)/(4*pi*self.d))**(1/3.0)
+		self.R=(3.348071936e-33*((3*self.m)/(4*math.pi*self.d)))**(1/3.0)
+
+		#self.x=float(self.p[0])
+		#self.y=float(self.p[1])
+		#self.z=float(self.p[2])
 		return self
+
 	#Coordenadas polares
 	def ppol(self):
-		r=sqrt(self.x**2+self.y**2)
+		r=math.sqrt(self.x**2+self.y**2)
 		if self.x==0:
 			if self.y>0:
-				ang=pi/2
+				ang=math.pi/2
 			else:
-				ang=3*pi/2
+				ang=3*math.pi/2
 		elif self.y==0:
 			if self.x>0:
 				ang=0
 			else:
-				ang=pi
+				ang=math.pi
 		elif self.x>0:
 			if self.y>0:
-				ang=atan(self.y/self.x)
+				ang=math.atan(self.y/self.x)
 			else:
-				ang=2*pi+atan(self.y/self.x)
+				ang=2*math.pi+math.atan(self.y/self.x)
 		else:
 			if self.y>0:
-				ang=pi+atan(self.y/self.x)
+				ang=math.pi+math.atan(self.y/self.x)
 			else:
-				ang=pi+atan(self.y/self.x)
+				ang=math.pi+math.atan(self.y/self.x)
 		return [r,ang]
 
+#Arreglar unión con densidad ponderada
 	def unionchoque(self,otros):
 		totalmasa=0.0
-		momentumtotal=np.array([0.0,0.0,0.0])
-		sumapos=np.array([0.0,0.0,0.0])
-		densidad=0.0
+		#densidad=0.0
+		momentumtotal=np.array([0.0]*3)
+		sumapos=np.array([0.0]*3)
 		for i in otros:
 			totalmasa+=i.m
 			momentumtotal+=np.array(i.mom)
 			sumapos+=i.p
-			densidad+=i.d
+			#densidad+=i.d
 
 		self.m=totalmasa
 		self.mom=momentumtotal
 		self.p=sumapos/float(len(otros))
-		self.x=self.p[0]
-		self.y=self.p[1]
-		self.z=self.p[2]
 		self.v=self.mom/float(self.m)
 		self.vx=float(self.v[0])
 		self.vy=float(self.v[1])
 		self.vz=float(self.v[2])
-		self.R=((3*self.m)/(4*pi*self.d))**(1/3)
+		self.R=(3.348071936e-33*((3*self.m)/(4*math.pi*self.d)))**(1/3.0)
+
+		#self.x=self.p[0]
+		#self.y=self.p[1]
+		#self.z=self.p[2]
+
 		return self
-		
-		
-		
+
+
+
+#DEFINIR FUNCIONES
+
+#range generador		
+def Range(f,i=0,p=1):
+	while i<f:
+		yield i
+		i+=p
+
+def energia_potencial(p,cuerpitos,n):
+	G=-1.9812727537285508e-29
+	potencial=0.0
+	for i in Range(n):
+		for j in Range(n):
+			if j!=i:
+				Rij=np.linalg.norm(p[i]-p[j])
+				potencial+=(G*cuerpitos[i].m*cuerpitos[j].m)/Rij
+	return 0.5*potencial
+
+def energia_cinetica(vel,cuerpitos,n):
+	cinetica=0.0
+	for i in Range(n):
+		vicuad=(np.linalg.norm(vel[i]))**2
+		cinetica+=vicuad*cuerpitos[i].m
+	return 0.5*cinetica
+
+				
 vector=[0.0,0.0,0.0]
 def evalua_dists(p,n,cuerpitos):
 	#Reciba lista de lista de posiciones.
 	paraunir=[]
 	paraunirtotal=[]
-	for i in range(n):
-		for j in range(n):
+	for i in Range(n):
+		for j in Range(n):
 			if j!=i:
 				Rij=np.linalg.norm(p[i]-p[j])
 				if Rij<=(cuerpitos[i].R+cuerpitos[j].R):
 					unir=[i,j]
 					unir.sort()
 					if unir not in paraunir:
-						#Genero lista que guarda pares ordenados representando el posible "choque" (menos de los dos radios)
+						#Genero lista que guarda pares ordenados representando el posible "choque" (menos de dos radios)
 						paraunir.append(unir)
+
 	#Seleccionando a los que interactuan entre si
 	while len(paraunir)!=0:
 		pegaditos=[]
@@ -133,19 +168,20 @@ def evalua_dists(p,n,cuerpitos):
 
 
 def choques(paraunirtotal,cuerpitos):
-	#función que crea objetos por unirlos a través de choques
-	listaplana=[]
+	#función que crea objetos para unirlos a través de choques
+	indices=[]
 	nuevoscuerpos=[]
+	#itera sobre cada lista de paraunirtotal (los que se viven una instancia de tocarse)
 	for colisionados in paraunirtotal:
-		cuerposo=[]
+		chocadores=[]
 		for j in colisionados:
-			listaplana.append(j)
-			cuerposo.append(cuerpitos[j])
+			indices.append(j)
+			chocadores.append(cuerpitos[j])
 		a=cuerpo()
-		b=a.unionchoque(cuerposo)
+		b=a.unionchoque(chocadores)
 		cuerpitos.append(b)
-	for j in range(len(cuerpitos)):
-		if j not in listaplana:
+	for j in Range(len(cuerpitos)):
+		if j not in indices:
 			nuevoscuerpos.append(cuerpitos[j])
 	
 	return nuevoscuerpos
@@ -154,13 +190,15 @@ def choques(paraunirtotal,cuerpitos):
 def evaluar_diff(p,v,m,n):
 	#función que evalua la diferencial principal. p y v listas de listas, m solo lista, n natural
 	evalua=np.array([vector]*n)
-	G=-6.673884e-11
-	#d=distancia en la cual la velocidad ya no aumenta?
-	for i in range(n):
-		for j in range(n):
+	G=-1.9812727537285508e-29
+	#d=0.0003342293561134223
+	for i in Range(n):
+		for j in Range(n):
 			if j!=i:
 				Rij=np.linalg.norm(p[i]-p[j])
+				#if Rij>d: esta linea anula velocidades anteriores, debiese mantenerla pues
 				evalua[i]=evalua[i]+G*m[j]*(p[i]-p[j])/pow(Rij,3)
+
 				
 	return evalua
 				
@@ -170,23 +208,15 @@ def camb_pt_eval(kp_i,kv_i,p_i,v_i,n,var,h):
 	kv_i_h=h*kv_i
 	p_i_=np.array([vector]*n)
 	v_i_=np.array([vector]*n)
-	for i in range(n):
-		if var==1:
-			p_i_[i]=p_i[i]+kp_i_h[i]/2.0
-			v_i_[i]=v_i[i]+kv_i_h[i]/2.0
-		else:
-			p_i_[i]=p_i[i]+kp_i_h[i]
-			v_i_[i]=v_i[i]+kv_i_h[i]
+	if var==1:
+		p_i_=p_i+kp_i_h/2.0
+		v_i_=v_i+kv_i_h/2.0
+	else:
+		p_i_=p_i+kp_i_h
+		v_i_=v_i+kv_i_h
 	return p_i_,v_i_,kp_i_h,kv_i_h
 
-def r_final(k1_h,k2_h,k3_h,k4_h,p_v_i,n):
-	#las cinco primeras lista de listas, n natural, p_v_i -> entrará p o v y saldrá resultado final de rk4.
-	p_v_i_1=np.array([vector]*n)
-	for i in range(0,n):
-		p_v_i_1[i]=p_v_i[i]+(k1_h[i]+2*(k2_h[i]+k3_h[i])+k4_h[i])/6.0
-	return p_v_i_1
-
-def rk4(p_i,v_i,h,m,n):
+def rk4(p_i,v_i,tiempo,h,m,n):
 	#Las dos primeras listas de listas
 	#Obtenemos cada k1
 	kp_1=v_i
@@ -210,12 +240,71 @@ def rk4(p_i,v_i,h,m,n):
 	kv_4=evaluar_diff(p_i_,v_i_,m,n)
 	kp_4_h,kv_4_h=kp_4*h,kv_4*h
 	
-	p_i_1=r_final(kp_1_h,kp_2_h,kp_3_h,kp_4_h,p_i,n)
+	p_i_1=p_i+(kp_1_h+2*(kp_2_h+kp_3_h)+kp_4_h)/6.0
 	
-	v_i_1=r_final(kv_1_h,kv_2_h,kv_3_h,kv_4_h,v_i,n)
+	v_i_1=v_i+(kv_1_h+2*(kv_2_h+kv_3_h)+kv_4_h)/6.0
 
 	return p_i_1,v_i_1
 
 
+def rka(p,v,tiempo_actual,tau,m,n,pasomaximo):
+	#global pasomaximo
+	adaptErr=1e-3
+	# factores de seguridad
+	safe1 = 0.9
+	safe2 = 1.1
+	maxTray=100
+	for iTray in range(maxTray):
+		# Tomemos dos pequennos pasos en el tiempo
+		half_tau = 0.5*tau
+		xSmall,vSmall=rk4(p,v, tiempo_actual, half_tau,m,n)
+		tiempo_sig=tiempo_actual+half_tau
+		xSmall,vSmall=rk4(xSmall,vSmall, tiempo_sig, half_tau,m,n)
+		# Tomemos un solo tiempo grande
+		xBig,vBig=rk4(p,v, tiempo_actual, tau,m,n)
+		# Calculemos el error de truncamiento estimado
+		#erroRatiox = 0.0
+		#erroRatiov=0.0
+		eps = 1.0e-16
+		errores=[]
+		for i in Range(n):
+			for j in Range(3):
+				scalex = adaptErr*(abs(xSmall[i][j])+abs(xBig[i][j]))/2.0
+				scalev=adaptErr*(abs(vSmall[i][j])+abs(vBig[i][j]))/2.0
+				error_truncax = vSmall[i][j]-vBig[i][j]
+				error_truncav = xSmall[i][j]-xBig[i][j]
+				ratiox = abs(error_truncax)/(scalex+eps)
+				ratiov= abs(error_truncav)/(scalev+eps)
+				if ratiox==0.0:
+					ratiox=eps
+				if ratiov==0.0:
+					ratiov=eps
+				errores.append(ratiox)
+				errores.append(ratiov)
+		ratio=max(errores)
+				#if erroRatiox <= ratiox :
+				#	erroRatiox=ratiox
+		
+	# Estimamos el nuevo valor de tau (incluyendo factores de seguridad)
+		tau_ant= tau
+		print "ratio"+str(ratio)
+		tau = safe1*tau_ant*pow(ratio,-0.20)
+		if tau < tau_ant/safe2 :
+			tau=tau_ant/safe2
+		elif tau > safe2*tau_ant :
+			tau=safe2*tau_ant
+		else:
+			tau=tau
+		if tau>pasomaximo:
+			tau=pasomaximo
+	# Si el error es aceptable regrese los valores computados
+		if ratiox < 1 :
+			return xSmall,vSmall,tiempo_actual+tau,tau 
 
+#numpy.array( [xSmall[0],xSmall[1],xSmall[2],xSmall[3], tiempo, tau] )
+	else:
+		print "Error: Runge-Kutta adaptativo fallo"
+		exit()
 
+#graficar fuerza, probar con dos cuerpos el tau (signo tau), comparar codigo c++ con este y el de python, graficar energita total para ver si se conserva. Probar definiendo pasos prefijados para distintas distancias, definir limite de aumento de velocidad. Medidas de seguridad generales. buscar archivos xml -> para definir opciones.
+#Talvez factores de seguridad afectan cuando se alejan (definir tau maximo). Runge kutta adaptativo no funciona con un solo cuerpo, y parace presentar problemas a distancias cercanas (aqui el error se vuelve cero rapido) y a largas distancias (aquí el tau crece como bestia)
