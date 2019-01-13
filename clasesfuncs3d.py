@@ -109,7 +109,24 @@ def Range(f,i=0,p=1):
 		yield i
 		i+=p
 
-		
+def energia_potencial(p,cuerpitos,n):
+	G=-1.9812727537285508e-29
+	potencial=0.0
+	for i in Range(n):
+		for j in Range(n):
+			if j!=i:
+				Rij=np.linalg.norm(p[i]-p[j])
+				potencial+=(G*cuerpitos[i].m*cuerpitos[j].m)/Rij
+	return 0.5*potencial
+
+def energia_cinetica(vel,cuerpitos,n):
+	cinetica=0.0
+	for i in Range(n):
+		vicuad=(np.linalg.norm(vel[i]))**2
+		cinetica+=vicuad*cuerpitos[i].m
+	return 0.5*cinetica
+
+				
 vector=[0.0,0.0,0.0]
 def evalua_dists(p,n,cuerpitos):
 	#Reciba lista de lista de posiciones.

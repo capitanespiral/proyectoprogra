@@ -8,7 +8,7 @@ from time import sleep
 crear=raw_input("Crear sistema o generar random? (Enter, genera random, 1 sistemas precreados, otro permite crear) ")
 tau=float(input("Tiempo de paso inicial? "))
 pasomaximo=float(input("Tiempo de paso máximo? "))
-annos=float(input("Cuantos años? "))
+#annos=float(input("Cuantos años? "))
 #Unidades año, UA y kg
 #Agregar densidad (implica cambiar varias weas de clases
 
@@ -21,7 +21,7 @@ if crear=="":
 		cuerpitos.append(a)
 elif crear=="1":
 	#Sistemas predefenidos, por ahora solo tierra y sol
-	cuerpitos.append(cuerpo([0,-1,0],[6.27768770053476,0,0],5.07e24,5515))
+	cuerpitos.append(cuerpo([0,-1,0],[6.27768770053476,2,0],5.07e24,5515))
 	cuerpitos.append(cuerpo([0,0,0],[0,0,0],1.9891e30,1411))
 	n=2
 	tau=0.01
@@ -58,47 +58,70 @@ print
 raw_input("Presione enter para comenzar")
 postierra=[]
 possol=[]
-while annos>tiempo:
-#while True:
+ecinetica=[]
+epotencial=[]
+etotal=[]
+tiempito=[]
+#while annos>tiempo:
+while True:
 #Distinta cantidad de elementos en el map parece :O
-	p,v,tiempo,tau=rka(pos,vel,tiempo,tau,masas,n,pasomaximo)
-	postierra.append(p[0])
-	possol.append(p[1])
-	print "tau"+str(tau)
-	#Genera error cuando solo queda un cuerpo
-	cuerpitos=map(lambda w,x,y,z: w.cambios(x,y,z),cuerpitos,p,v,masas)
-	print "#################"+"Año "+str(tiempo)+"#############################"
-	print "Posiciones"
-	print p
-	print
-	print "Velocidades"
-	print v
-	print
-	#print "Masas"
-	#print masas
-	#print
-	#print "Momentums"
-	#print np.array(map(lambda x:x.mom,cuerpitos))
-	#print
-	colisionar=evalua_dists(p,n,cuerpitos)
-	print "colisiones"
-	print colisionar
-	cuerpitos=choques(colisionar,cuerpitos)
-	pos=np.array(map(lambda x: x.p,cuerpitos))
-	#print "nuevas posiciones"
-	#print pos
-	vel=np.array(map(lambda x: x.v,cuerpitos))
-	#print "nuevas velocidades"
-	#print vel
-	masas=np.array(map(lambda x: x.m,cuerpitos))
-	#print "nuevas masas"
-	#print masas
-	momentum=np.array(map(lambda x: x.mom,cuerpitos))
-	#print "nuevo momentum"
-	#print momentum
-	n=len(cuerpitos)
-	#sleep(1)
+	try:
+		p,v,tiempo,tau=rka(pos,vel,tiempo,tau,masas,n,pasomaximo)
+		postierra.append(p[0])
+		possol.append(p[1])
+		print "tau"+str(tau)
+		#Genera error cuando solo queda un cuerpo
+		cuerpitos=map(lambda w,x,y,z: w.cambios(x,y,z),cuerpitos,p,v,masas)
+		print "#################"+"Año "+str(tiempo)+"#############################"
+		print "Posiciones"
+		print p
+		print
+		print "Velocidades"
+		print v
+		print
+		#print "Masas"
+		#print masas
+		#print
+		#print "Momentums"
+		#print np.array(map(lambda x:x.mom,cuerpitos))
+		#print
+		cinetica=energia_cinetica(v,cuerpitos,n)
+		potencial=energia_potencial(p,cuerpitos,n)
+		total=cinetica+potencial
+		ecinetica.append(cinetica)
+		epotencial.append(potencial)
+		etotal.append(total)
+		tiempito.append(tiempo)
+		print "Energias"
+		print cinetica
+		print potencial
+		print total
+		colisionar=evalua_dists(p,n,cuerpitos)
+		print "colisiones"
+		print colisionar
+		cuerpitos=choques(colisionar,cuerpitos)
+		pos=np.array(map(lambda x: x.p,cuerpitos))
+		#print "nuevas posiciones"
+		#print pos
+		vel=np.array(map(lambda x: x.v,cuerpitos))
+		#print "nuevas velocidades"
+		#print vel
+		masas=np.array(map(lambda x: x.m,cuerpitos))
+		#print "nuevas masas"
+		#print masas
+		momentum=np.array(map(lambda x: x.mom,cuerpitos))
+		#print "nuevo momentum"
+		#print momentum
+		n=len(cuerpitos)
+		#sleep(1)
+	except KeyboardInterrupt:
+		break
+plt.plot(tiempito,ecinetica)
+plt.plot(tiempito,epotencial)
+plt.plot(tiempito,etotal)
+plt.savefig("energia.png")
+plt.clf()
 plt.plot([x[0] for x in postierra],[x[1] for x in postierra],'x')
 plt.plot([x[0] for x in possol],[x[1] for x in possol],'+')
 plt.axis("equal")
-plt.show()
+plt.savefig("orbita.png")
