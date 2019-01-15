@@ -2,13 +2,10 @@
 #-*- coding:utf-8 -*-
 import math
 import numpy as np
-#TODA LISTA USADA TIENE QUE SER ARRAY DE NUMPY
-#Definir choques
 #HACER LISTA GENERAL DE ATRIBUTOS
 #densidad=3132.375 promedio de los planetas del sistema solar
-#modificar listas por generadores, compresion de listas, etc... (tambien en main)
-#Crear clase estrella
-#Variables globales
+
+
 
 G=-6.674e-11 #en mks
 conversionm_a_ua=(1.0/149597870700)
@@ -32,9 +29,6 @@ class cuerpo:
 		self.mom=[self.m*self.vx,self.m*self.vy,self.m*self.vz]
 		self.R=(3.348071936e-33*((3*self.m)/(4*math.pi*self.d)))**(1/3.0)
 
-		#self.x=float(self.p[0])
-		#self.y=float(self.p[1])
-		#self.z=float(self.p[2])
 
 	#Cambios de atributos
 	def cambios(self,p,v,m):
@@ -47,9 +41,6 @@ class cuerpo:
 		self.mom=[self.m*self.vx,self.m*self.vy,self.m*self.vz]
 		self.R=(3.348071936e-33*((3*self.m)/(4*math.pi*self.d)))**(1/3.0)
 
-		#self.x=float(self.p[0])
-		#self.y=float(self.p[1])
-		#self.z=float(self.p[2])
 		return self
 
 	#Coordenadas polares
@@ -77,18 +68,16 @@ class cuerpo:
 				ang=math.pi+math.atan(self.y/self.x)
 		return [r,ang]
 
-#Arreglar unión con densidad ponderada
+	#Funcion que crea un objeto resultado de choque de varios.
 	def unionchoque(self,otros):
 		totalmasa=0.0
-		#densidad=0.0
 		momentumtotal=np.array([0.0]*3)
 		sumapos=np.array([0.0]*3)
 		for i in otros:
 			totalmasa+=i.m
 			momentumtotal+=np.array(i.mom)
 			sumapos+=i.p
-			#densidad+=i.d
-
+			
 		self.m=totalmasa
 		self.mom=momentumtotal
 		self.p=sumapos/float(len(otros))
@@ -97,10 +86,6 @@ class cuerpo:
 		self.vy=float(self.v[1])
 		self.vz=float(self.v[2])
 		self.R=(3.348071936e-33*((3*self.m)/(4*math.pi*self.d)))**(1/3.0)
-
-		#self.x=self.p[0]
-		#self.y=self.p[1]
-		#self.z=self.p[2]
 
 		return self
 
@@ -114,23 +99,67 @@ def Range(f,i=0,p=1):
 		yield i
 		i+=p
 
+def momentoangular(p,v,m):
+	#Masa en masas terrestres
+	mom_ang=[]
+	modpos=[]
+	modvel=[]
+	for k in Range(len(p)):
+		L=(m[0]/(5.972e24))*np.cross(p[k][0],v[k][0])
+		mom_ang.append(np.linalg.norm(L))
+		modpos.append(np.linalg.norm(p[k][0]))
+		modvel.append(np.linalg.norm(v[k][0]))
+	return mom_ang,modpos,modvel
+
+def per_distorb_terc_ley(p,ec,t,m):
+	global G_ua_anio
+	G=G_ua_anio
+	x=[]
+	for k in p:
+		x.append(k[0][0])
+	xmax=abs(max(x))
+	xmin=abs(min(x))
+	a=(xmax+xmin)/2.0
+	ec=list(ec[1:])
+	peaks=[]
+	i=0
+	for ind,obj in enumerate(ec):
+		if ec[ind-1]<obj and ec[ind+1]<obj:
+			peaks.append(ind)
+			i+=1
+		if i==2:
+			break
+	t1=t.pop(peaks[0])
+	t2=t.pop(peaks[1])
+	periodo=(abs(t1-t2))
+	c1=(((periodo**2)*(m[0]+m[1]))/(a**3))
+	c2=((4*(math.pi**2))/(G))
+	c=[c1,c2]
+	return periodo,a,c
+
 def energia_potencial(p,cuerpitos,n):
 	global G_ua_anio
 	G=G_ua_anio
-	potencial=0.0
-	for i in Range(n):
-		for j in Range(n):
-			if j!=i:
-				Rij=np.linalg.norm(p[i]-p[j])
-				potencial+=(G*cuerpitos[i].m*cuerpitos[j].m)/Rij
-	return 0.5*potencial
+	e_pot=[]
+	for k in Range(len(p)):
+		potencial=0.0
+		for i in Range(n):
+			for j in Range(n):
+				if j!=i:
+					Rij=np.linalg.norm(p[k][i]-p[k][j])
+					potencial+=(G*cuerpitos[i].m*cuerpitos[j].m)/Rij
+		e_pot.append(0.5*potencial)
+	return np.array(e_pot)
 
 def energia_cinetica(vel,cuerpitos,n):
-	cinetica=0.0
-	for i in Range(n):
-		vicuad=(np.linalg.norm(vel[i]))**2
-		cinetica+=vicuad*cuerpitos[i].m
-	return 0.5*cinetica
+	e_cin=[]
+	for i in Range(len(vel)):
+		cinetica=0.0
+		for j in Range(n):
+			vicuad=(np.linalg.norm(vel[i][j]))**2
+			cinetica+=vicuad*cuerpitos[j].m
+		e_cin.append(0.5*cinetica)
+	return np.array(e_cin)
 
 				
 vector=[0.0,0.0,0.0]
@@ -256,23 +285,21 @@ def rk4(p_i,v_i,tiempo,h,m,n):
 
 
 def rka(p,v,tiempo_actual,tau,m,n,pasomaximo):
-	#global pasomaximo
+
 	adaptErr=1e-3
 	# factores de seguridad
 	safe1 = 0.7
 	safe2 = 1.4
 	maxTray=100
 	for iTray in range(maxTray):
-		# Tomemos dos pequennos pasos en el tiempo
+		# Tomemos dos pequeños pasos en el tiempo
 		half_tau = 0.5*tau
 		xSmall,vSmall=rk4(p,v, tiempo_actual, half_tau,m,n)
 		tiempo_sig=tiempo_actual+half_tau
 		xSmall,vSmall=rk4(xSmall,vSmall, tiempo_sig, half_tau,m,n)
 		# Tomemos un solo tiempo grande
 		xBig,vBig=rk4(p,v, tiempo_actual, tau,m,n)
-		# Calculemos el error de truncamiento estimado
-		#erroRatiox = 0.0
-		#erroRatiov=0.0
+
 		eps = 1.0e-16
 		errores=[]
 		for i in Range(n):
@@ -290,8 +317,6 @@ def rka(p,v,tiempo_actual,tau,m,n,pasomaximo):
 				errores.append(ratiox)
 				errores.append(ratiov)
 			ratio=max(errores)
-				#if erroRatiox <= ratiox :
-				#	erroRatiox=ratiox
 		
 	# Estimamos el nuevo valor de tau (incluyendo factores de seguridad)
 			tau_ant= tau
@@ -308,11 +333,8 @@ def rka(p,v,tiempo_actual,tau,m,n,pasomaximo):
 		# Si el error es aceptable regrese los valores computados
 			if ratio < 1 :
 				return xSmall,vSmall,tiempo_actual+tau,tau 
-
-#numpy.array( [xSmall[0],xSmall[1],xSmall[2],xSmall[3], tiempo, tau] )
 	else:
 		print "Error: Runge-Kutta adaptativo fallo"
 		exit()
 
-#graficar fuerza, probar con dos cuerpos el tau (signo tau), comparar codigo c++ con este y el de python, graficar energita total para ver si se conserva. Probar definiendo pasos prefijados para distintas distancias, definir limite de aumento de velocidad. Medidas de seguridad generales. buscar archivos xml -> para definir opciones.
-#Talvez factores de seguridad afectan cuando se alejan (definir tau maximo). Runge kutta adaptativo no funciona con un solo cuerpo, y parace presentar problemas a distancias cercanas (aqui el error se vuelve cero rapido) y a largas distancias (aquí el tau crece como bestia)
+
