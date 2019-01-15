@@ -150,16 +150,24 @@ while True:
 				break
 	except KeyboardInterrupt:
 		break
-#k=0
-#if os.path.exists("Simulacion"+str(k)+)
+k=0
+while True:
+	carpeta="Simulacion"+str(k)
+	if not os.path.exists(carpeta):
+		os.mkdir(carpeta)
+		break
+	k+=1
+
 
 e_p=energia_potencial(posiciones,cuerpitos,n)
 e_c=energia_cinetica(velocidades,cuerpitos,n)
 e_total=e_p+e_c
-plt.plot(tiempito,e_c)
-plt.plot(tiempito,e_p)
-plt.plot(tiempito,e_total)
-plt.savefig("energiatotal.png")
+plt.title("Energia cinetica, potencial y total del Sistema")
+plt.xlabel("Tiempo")
+plt.ylabel("Energia")
+plt.plot(tiempito,e_c,"b",tiempito,e_p,"g",tiempito,e_total,"r")
+plt.legend(("Cinetica","Potencial","Total"))
+plt.savefig(carpeta+"/energiatotal.png")
 plt.show()
 plt.clf()
 
@@ -170,17 +178,16 @@ if n==n_original:
 		plt.plot(tiempito,i,c="r")
 		plt.plot(tiempito,j,c="b")
 		plt.plot(tiempito,k,c="g")
-		plt.savefig("momento_ang"+str(h)+".png")
+		plt.savefig(carpeta+"/momento_ang"+str(h)+".png")
 		plt.show()
 		plt.clf()
 		h+=1
 	e_c=energia_cinetica_par(velocidades,masas)
 	periodos,semiejes,constantes=per_distorb_terc_ley(posiciones,e_c,tiempito,masas)
 	h=0
-	print periodos
 	for i in constantes:
 		plt.hist(i)
-		plt.savefig("periodo"+str(h)+".png")
+		plt.savefig(carpeta+"/periodo"+str(h)+".png")
 		plt.show()
 		plt.clf()
 		h+=1
@@ -191,15 +198,14 @@ if n==n_original:
 			cadacuerpo.append(instante[i])
 		plt.plot([x[0] for x in cadacuerpo],[x[1] for x in cadacuerpo],".")
 	plt.axis("equal")
-	plt.savefig("orbita.png")
+	plt.savefig(carpeta+"/orbita.png")
 	plt.show()
 	plt.clf()
 
 
 #Unidades año, UA y kg
-#Mas sistemas predefinidos, poner titulos y cosas a gráficos, intentar graficar cuando colisionan las cosas, hacer parte gráfica (dah), crear funcion while true con except.
-#Sentido dimensional al random, aclarar cosas excluivas para dos cuerpos (programisticamente y en los docs)
-#Agregar opciones para pocos planetas (osea, que para pocos hayan muchas y para hartos pocas), desactivar o activar colisiones, tener opcion de colisiones.
+#Mas sistemas predefinidos, poner titulos y cosas a gráficos, intentar graficar cuando colisionan las cosas, hacer parte gráfica (dah)
+#Sentido dimensional al random
 #amononar gráficos
 #importar bash? en primer rawinput
-#Ordenando cuerpos por key masa se puede calcular todo de todos omggggggg y crear carpeta y guardarlo ahi. Tambirn hacer que la carpeta tenga las cosas. Que acepte nombre en el archivo y los asigne.
+# Que acepte nombre en el archivo y los asigne en los gráficos.
