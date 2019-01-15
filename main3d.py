@@ -1,6 +1,8 @@
 #!/usr/bin/python
 #-*- coding:utf-8 -*-
 import matplotlib.pyplot as plt
+import mpl_toolkits.mplot3d.axes3d as p3
+import matplotlib.animation as animation
 from clasesfuncs3d import *
 import random as rm
 import numpy as np
@@ -87,6 +89,7 @@ while True:
 	try:
 		tau=float(input("Tiempo de paso inicial? "))
 		pasomaximo=float(input("Tiempo de paso máximo? "))
+		ejes=float(raw_input("Tamanio de los ejes (en UA) para la animacion 3D: "))
 		tiempototal=raw_input("Tiempo max? (Enter para que sea infinito) ")
 		if tiempototal!="":
 			tiempototalisimo=float(tiempototal)
@@ -157,6 +160,71 @@ while True:
 		os.mkdir(carpeta)
 		break
 	k+=1
+
+	
+def update(num, dataLines, lines, pts):
+    for line,pt, data in zip(lines, pts, dataLines):
+        # NOTE: there is no .set_data() for 3 dim data...
+        x,y=data[0:2, :num]
+        z=data[2, :num]
+        line.set_data(x,y)
+        line.set_3d_properties(data[2, :num])
+        pt.set_data(x[-1:],y[-1:])
+        pt.set_3d_properties(z[-1:])
+	
+    return lineas+pts
+
+# Attaching 3D axis to the figure
+fig = plt.figure()
+ax = p3.Axes3D(fig)
+#colores
+colores = plt.cm.jet(np.linspace(0, 1, n))
+
+
+#punto de vista 
+ax.view_init(10, 0)
+
+# Fifty lines of random 3-D lines
+data = []
+for i in range(n):
+	a=[x[i] for x in posiciones]
+	xs=[x[0] for x in a]
+	ys=[y[1] for y in a]
+	zs=[z[2] for z in a]
+	p=np.array([xs,ys,zs])
+	data.append(p)
+
+
+radios=[2*x.R*4387.714534086753 for x in cuerpitos]
+
+
+# Creating fifty line objects.
+# NOTE: Can't pass empty arrays into 3d version of plot()
+#lineas y puntos
+#definir valores por defecto para weas aleatorias
+lineas = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1], "-",c=c, markersize=0.01)[0] for dat,c in zip(data,colores)]
+pts = sum([ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1], 'o', c=c, markersize=r)
+           for dat,c,r in zip(data, colores, radios)], [])
+
+# Setting the axes properties
+
+ax.set_xlim3d([-ejes, ejes])
+ax.set_xlabel('X')
+
+ax.set_ylim3d([-ejes, ejes])
+ax.set_ylabel('Y')
+
+ax.set_zlim3d([-ejes, ejes])
+ax.set_zlabel('Z')
+
+ax.set_title('Prueba 3D')
+
+# Creating the Animation object
+ani = animation.FuncAnimation(fig, update, len(data[0][0]), fargs=(data, lineas, pts),
+                                   interval=200)
+
+plt.show()
+	
 
 
 e_p=energia_potencial(posiciones,cuerpitos,n)
