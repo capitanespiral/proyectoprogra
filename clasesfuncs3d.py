@@ -298,6 +298,13 @@ def camb_pt_eval(kp_i,kv_i,p_i,v_i,n,var,h):
 		v_i_=v_i+kv_i_h
 	return p_i_,v_i_,kp_i_h,kv_i_h
 
+def distmax(pos):
+	for i in pos:
+		for j in i:
+			distmaxx=[]
+			distmaxx.append(np.linalg.norm(j))
+	return max(distmaxx)
+
 def rk4(p_i,v_i,tiempo,h,m,n):
 	#Las dos primeras listas de listas
 	#Obtenemos cada k1
