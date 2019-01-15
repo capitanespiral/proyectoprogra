@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from clasesfuncs3d import *
 import random as rm
 import numpy as np
-from time import sleep
+import os
 crear=raw_input("Crear sistema o generar random? (Enter, genera random, 1 ingresa archivo con estado inicial, otro permite crear) ")
 colisionesisimas=raw_input("¿Desea colisiones activadas? (Enter no, cualquier otro si) ")
 tiempo=0.0
@@ -12,8 +12,8 @@ cuerpitos=[]
 if crear=="":
 	while True:
 		try: 
-			n=input("Cuantos cuerpitos? ")
-			if type(n)==str:
+			n_original=input("Cuantos cuerpitos? ")
+			if type(n_original)==str:
 				print "Por favor ingresa un valor numérico\n"
 				continue
 			break
@@ -23,7 +23,7 @@ if crear=="":
 		except:
 			print "Por favor ingresa un valor numérico\n"
 			continue
-	for i in Range(n):
+	for i in Range(n_original):
 		a=cuerpo([rm.uniform(-1,1),rm.uniform(-1,1),rm.uniform(-1,1)],[rm.uniform(-10,10),rm.uniform(-10,10),rm.uniform(-10,10)],rm.uniform(1e10,2e10))
 		cuerpitos.append(a)
 elif crear=="1":
@@ -44,7 +44,7 @@ elif crear=="1":
 					else:
 						velocidad.append(float(elemento))
 				cuerpitos.append(cuerpo(posicion,velocidad,masa))
-			n=len(cuerpitos)
+			n_original=len(cuerpitos)
 			break
 		except KeyboardInterrupt:
 			print
@@ -55,7 +55,7 @@ elif crear=="1":
 else:		
 	while True:
 		try: 
-			n=input("Cuantos cuerpitos? ")
+			n_original=input("Cuantos cuerpitos? ")
 			if type(n)==str:
 				print "Por favor ingresa un valor numérico\n"
 				continue
@@ -67,10 +67,9 @@ else:
 			print "Por favor ingresa un valor numérico\n"
 			continue
 	i=1
-	while i<=n:
+	while i<=n_original:
 		try:
 			masitas=float(input("Masa cuerpo "+str(i)+": "))
-			#densidad=float(input("Densidad cuerpo "+str(i)+": "))
 			pos=raw_input("Pos. inicial cuerpo "+str(i)+": ")
 			vel=raw_input("Vel. inicial cuerpo "+str(i)+": ")
 			print
@@ -98,7 +97,8 @@ while True:
 	except:
 		print "Por favor ingresa un valor númerico\n"
 		continue
-
+n=n_original
+cuerpitos.sort(cmp=comparamasas,reverse=True)
 pos=np.array(map(lambda x: x.p,cuerpitos))
 vel=np.array(map(lambda x: x.v,cuerpitos))
 masas=np.array(map(lambda x: x.m,cuerpitos))
@@ -150,6 +150,8 @@ while True:
 				break
 	except KeyboardInterrupt:
 		break
+#k=0
+#if os.path.exists("Simulacion"+str(k)+)
 
 e_p=energia_potencial(posiciones,cuerpitos,n)
 e_c=energia_cinetica(velocidades,cuerpitos,n)
@@ -157,33 +159,41 @@ e_total=e_p+e_c
 plt.plot(tiempito,e_c)
 plt.plot(tiempito,e_p)
 plt.plot(tiempito,e_total)
-plt.savefig("energia.png")
+plt.savefig("energiatotal.png")
 plt.show()
 plt.clf()
 
-if n==2:
+if n==n_original:
 	mom_ang,modpos,modvel=momentoangular(posiciones,velocidades,masas)
-	plt.plot(tiempito,mom_ang,c="r")
-	plt.plot(tiempito,modpos,c="b")
-	plt.plot(tiempito,modvel,c="g")
-	plt.savefig("momento_ang.png")
+	h=0
+	for i,j,k in zip(mom_ang,modpos,modvel):
+		plt.plot(tiempito,i,c="r")
+		plt.plot(tiempito,j,c="b")
+		plt.plot(tiempito,k,c="g")
+		plt.savefig("momento_ang"+str(h)+".png")
+		plt.show()
+		plt.clf()
+		h+=1
+	e_c=energia_cinetica_par(velocidades,masas)
+	periodos,semiejes,constantes=per_distorb_terc_ley(posiciones,e_c,tiempito,masas)
+	h=0
+	print periodos
+	for i in constantes:
+		plt.hist(i)
+		plt.savefig("periodo"+str(h)+".png")
+		plt.show()
+		plt.clf()
+		h+=1
+
+	for i in Range(len(posiciones[0])):
+		cadacuerpo=[]
+		for instante in posiciones:
+			cadacuerpo.append(instante[i])
+		plt.plot([x[0] for x in cadacuerpo],[x[1] for x in cadacuerpo],".")
+	plt.axis("equal")
+	plt.savefig("orbita.png")
 	plt.show()
 	plt.clf()
-
-	a,b,c=per_distorb_terc_ley(posiciones,e_c,tiempito,masas)
-	plt.hist(c)
-	plt.savefig("periodo.png")
-	plt.show()
-
-for i in Range(len(posiciones[0])):
-	cadacuerpo=[]
-	for instante in posiciones:
-		cadacuerpo.append(instante[i])
-	plt.plot([x[0] for x in cadacuerpo],[x[1] for x in cadacuerpo],".")
-plt.axis("equal")
-plt.savefig("orbita.png")
-plt.show()
-plt.clf()
 
 
 #Unidades año, UA y kg
@@ -192,3 +202,4 @@ plt.clf()
 #Agregar opciones para pocos planetas (osea, que para pocos hayan muchas y para hartos pocas), desactivar o activar colisiones, tener opcion de colisiones.
 #amononar gráficos
 #importar bash? en primer rawinput
+#Ordenando cuerpos por key masa se puede calcular todo de todos omggggggg y crear carpeta y guardarlo ahi. Tambirn hacer que la carpeta tenga las cosas. Que acepte nombre en el archivo y los asigne.

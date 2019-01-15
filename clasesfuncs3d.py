@@ -99,43 +99,88 @@ def Range(f,i=0,p=1):
 		yield i
 		i+=p
 
-def momentoangular(p,v,m):
+def comparamasas(a,b):
+	if a.m>b.m:
+		return 1
+	elif a.m<b.m:
+		return -1
+	return 0
+
+def momentoangular(p,v,masa):
 	#Masa en masas terrestres
-	mom_ang=[]
-	modpos=[]
-	modvel=[]
-	for k in Range(len(p)):
-		L=(m[0]/(5.972e24))*np.cross(p[k][0],v[k][0])
-		mom_ang.append(np.linalg.norm(L))
-		modpos.append(np.linalg.norm(p[k][0]))
-		modvel.append(np.linalg.norm(v[k][0]))
-	return mom_ang,modpos,modvel
+	#Funciona con el elemento que gira en primera fila y el centro en segunda fila
+	m_a=[]
+	m_p=[]
+	m_v=[]
+	m=masa[1:]
+	for indice,masa in enumerate(m):
+		mom_ang=[]
+		modpos=[]
+		modvel=[]
+		for k in Range(len(p)):
+			L=(masa/(5.972e24))*np.cross(p[k][indice+1],v[k][indice+1])
+			mom_ang.append(np.linalg.norm(L))
+			modpos.append(np.linalg.norm(p[k][indice+1]))
+			modvel.append(np.linalg.norm(v[k][indice+1]))
+		m_a.append(mom_ang)
+		m_p.append(modpos)
+		m_v.append(modvel)
+	return m_a,m_p,m_v
+
+def energia_cinetica_par(vel,masa):
+	m=masa[1:]
+	e_c=[]
+	for indice,masa in enumerate(m):
+		e_cin=[]
+		for i in Range(len(vel)):
+			#Guardo energía cinética de todos los tiempos para cada cuerpo
+			vicuad=(np.linalg.norm(vel[i][indice+1]))**2
+			cinetica=vicuad*masa
+			e_cin.append(0.5*cinetica)
+		e_c.append(e_cin)
+	return e_c
 
 def per_distorb_terc_ley(p,ec,t,m):
 	global G_ua_anio
 	G=G_ua_anio
-	x=[]
-	for k in p:
-		x.append(k[0][0])
-	xmax=abs(max(x))
-	xmin=abs(min(x))
-	a=(xmax+xmin)/2.0
-	ec=list(ec[1:])
-	peaks=[]
-	i=0
-	for ind,obj in enumerate(ec):
-		if ec[ind-1]<obj and ec[ind+1]<obj:
-			peaks.append(ind)
-			i+=1
-		if i==2:
-			break
-	t1=t.pop(peaks[0])
-	t2=t.pop(peaks[1])
-	periodo=(abs(t1-t2))
-	c1=(((periodo**2)*(m[0]+m[1]))/(a**3))
-	c2=((4*(math.pi**2))/(G))
-	c=[c1,c2]
-	return periodo,a,c
+	#Guardamos las x de cada cuerpo para todos los tiempos.
+	x_total=[]
+	for indice in Range(len(m)-1):
+		x=[]
+		for k in p:
+			x.append(k[indice+1][0])
+		x_total.append(x)
+
+	semiejes=map(lambda x:(abs(max(x))+abs(min(x)))/2.0,x_total)
+	
+	peaks_total=[]
+	for i in ec:
+		i=i[1:]
+		peaks=[]
+		k=0
+		for ind,obj in enumerate(i):
+			if i[ind-1]<obj and i[ind+1]<obj:
+				peaks.append(ind)
+				k+=1
+			if k==2:
+				peaks_total.append(peaks)
+				break
+	k=1
+	periodos=[]
+	constantes=[]
+	for i in peaks_total:
+		tiemposs=t[:]
+		t1=t.pop(i[0])
+		t2=t.pop(i[1])
+		periodo=(abs(t1-t2))
+		c1=(((periodo**2)*(m[0]+m[k]))/((semiejes[k-1])**3))
+		c2=((4*(math.pi**2))/(G))
+		c=[c1,c2]
+		periodos.append(periodo)
+		constantes.append(c)
+		k+=1		
+	
+	return periodos,semiejes,constantes
 
 def energia_potencial(p,cuerpitos,n):
 	global G_ua_anio
