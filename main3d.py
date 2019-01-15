@@ -26,7 +26,7 @@ if crear=="":
 			print "Por favor ingresa un valor numérico\n"
 			continue
 	for i in Range(n_original):
-		a=cuerpo([rm.uniform(-1,1),rm.uniform(-1,1),rm.uniform(-1,1)],[rm.uniform(-10,10),rm.uniform(-10,10),rm.uniform(-10,10)],rm.uniform(1e10,2e10))
+		a=cuerpo([rm.uniform(-1,1),rm.uniform(-1,1),rm.uniform(-1,1)],[rm.uniform(-6,6),rm.uniform(-6,6),rm.uniform(-6,6)],rm.uniform(1e20,2e30))
 		cuerpitos.append(a)
 elif crear=="1":
 	while True:
@@ -89,7 +89,6 @@ while True:
 	try:
 		tau=float(input("Tiempo de paso inicial? "))
 		pasomaximo=float(input("Tiempo de paso máximo? "))
-		ejes=float(raw_input("Tamanio de los ejes (en UA) para la animacion 3D: "))
 		tiempototal=raw_input("Tiempo max? (Enter para que sea infinito) ")
 		if tiempototal!="":
 			tiempototalisimo=float(tiempototal)
@@ -195,7 +194,7 @@ for i in range(n):
 	data.append(p)
 
 
-radios=[2*x.R*4387.714534086753 for x in cuerpitos]
+radios=[x.R*((-1.5*distmax(posiciones)+52.5)/0.007976817937469764) for x in cuerpitos]
 
 
 # Creating fifty line objects.
@@ -208,13 +207,13 @@ pts = sum([ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1], 'o', c=c, markersize=r
 
 # Setting the axes properties
 
-ax.set_xlim3d([-ejes, ejes])
+ax.set_xlim3d([-distmax(posiciones), distmax(posiciones)])
 ax.set_xlabel('X')
 
-ax.set_ylim3d([-ejes, ejes])
+ax.set_ylim3d([-distmax(posiciones), distmax(posiciones)])
 ax.set_ylabel('Y')
 
-ax.set_zlim3d([-ejes, ejes])
+ax.set_zlim3d([-distmax(posiciones), distmax(posiciones)])
 ax.set_zlabel('Z')
 
 ax.set_title('Prueba 3D')
@@ -224,6 +223,7 @@ ani = animation.FuncAnimation(fig, update, len(data[0][0]), fargs=(data, lineas,
                                    interval=200)
 
 plt.show()
+	
 	
 
 
