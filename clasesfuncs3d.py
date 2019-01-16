@@ -452,6 +452,7 @@ def rka(p,v,tiempo_actual,tau,m,n,pasomaximo):
 		print "Error: Runge-Kutta adaptativo fallo"
 		exit()
 
+#define la duncion que actualiza los estados para la animacion y los grafica 
 def update(num, dataLines, lineas, pts):	
     for line,pt, data in zip(lineas, pts, dataLines):	
         # NOTE: there is no .set_data() for 3 dim data...	
@@ -465,3 +466,5 @@ def update(num, dataLines, lineas, pts):
     return lineas+pts
 
 
+#las funciones de runge kutta se obtuvieron de un paper encontrado en internet y modificaron para este caso, y el de runge kutta adaptativo se baso en el apunte de este curso de hace varios años, creditos al profesor.
+#Ambas se adaptaron a nuestro programa.
