@@ -246,7 +246,7 @@ ax.set_ylabel('Y')
 ax.set_zlim3d([-distmax(posiciones), distmax(posiciones)])	
 ax.set_zlabel('Z')	
 
-ax.set_title('Animación 3D')	
+ax.set_title('Animacion 3D')	
 
 #crea la animación y la muestra	
 ani = animation.FuncAnimation(fig, update, len(data[0][0]), fargs=(data, lineas, pts),interval=200)	
