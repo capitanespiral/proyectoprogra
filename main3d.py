@@ -170,17 +170,16 @@ if guardar!="":
 			break
 		k+=1
 
-# Attaching 3D axis to the figure	
+# se crean los ejes en tres dimensiones 	
 fig = plt.figure()	
 ax = p3.Axes3D(fig)	
-#colores	
+#define los colores	
 colores = plt.cm.jet(np.linspace(0, 1, n))	
 
-
-#punto de vista 	
+#punto de vista inicial	
 ax.view_init(10, 0)	
 
-# Fifty lines of random 3-D lines	
+# crea un arreglo con las posiciones de todos los cuerpos, es usado en la animación	
 data = []	
 for i in range(n):	
 	a=[x[i] for x in posiciones]	
@@ -190,6 +189,7 @@ for i in range(n):
 	p=np.array([xs,ys,zs])	
 	data.append(p)	
 
+#
 radios=[x.R*((-1.5*distmax(posiciones)+52.5)/0.007976817937469764) for x in cuerpitos]	
 
 
