@@ -14,7 +14,7 @@ G_ua_anio=G*(conversionm_a_ua**3)*((3600*24*365)**2)
 #CREACIÓN DE CLASE DE CUERPO
 class cuerpo:
 	#m masa (acepta float) [kg], v velocidad (acepta lista, origen en el cuerpo en si, definida cartesiana) [ua/año], p posición (acepta lista, definida de forma cartesiana) [ua]
-	def __init__(self,p=[0.0]*3,v=[0.0]*3,m=1.0,d=3132.375):
+	def __init__(self,p=[0.0]*3,v=[0.0]*3,m=1.0,d=3132.375,nombre=0):
 		#Posición
 		self.p=p
 		#masa y densidad
@@ -28,7 +28,7 @@ class cuerpo:
 		#Momentum lineal
 		self.mom=[self.m*self.vx,self.m*self.vy,self.m*self.vz]
 		self.R=(3.348071936e-33*((3*self.m)/(4*math.pi*self.d)))**(1/3.0)
-
+		self.nombre=str(nombre)
 
 	#Cambios de atributos
 	def cambios(self,p,v,m):
@@ -99,6 +99,13 @@ def Range(f,i=0,p=1):
 		yield i
 		i+=p
 
+def distmax(pos):
+	for i in pos:
+		for j in i:
+			distmaxx=[]
+			distmaxx.append(np.linalg.norm(j))
+	return max(distmaxx)
+	
 def comparamasas(a,b):
 	if a.m>b.m:
 		return 1
@@ -175,7 +182,7 @@ def per_distorb_terc_ley(p,ec,t,m):
 		periodo=(abs(t1-t2))
 		c1=(((periodo**2)*(m[0]+m[k]))/((semiejes[k-1])**3))
 		c2=((4*(math.pi**2))/(G))
-		c=[c1,c2]
+		c=[c1,abs(c2)]
 		periodos.append(periodo)
 		constantes.append(c)
 		k+=1		
@@ -277,8 +284,8 @@ def evaluar_diff(p,v,m,n):
 		for j in Range(n):
 			if j!=i:
 				Rij=np.linalg.norm(p[i]-p[j])
-				if Rij>d: 
-					evalua[i]+=G*m[j]*(p[i]-p[j])/pow(Rij,3)
+				#if Rij>d: 
+				evalua[i]+=G*m[j]*(p[i]-p[j])/pow(Rij,3)
 				
 
 				
@@ -297,13 +304,6 @@ def camb_pt_eval(kp_i,kv_i,p_i,v_i,n,var,h):
 		p_i_=p_i+kp_i_h
 		v_i_=v_i+kv_i_h
 	return p_i_,v_i_,kp_i_h,kv_i_h
-
-def distmax(pos):
-	for i in pos:
-		for j in i:
-			distmaxx=[]
-			distmaxx.append(np.linalg.norm(j))
-	return max(distmaxx)
 
 def rk4(p_i,v_i,tiempo,h,m,n):
 	#Las dos primeras listas de listas
@@ -388,5 +388,17 @@ def rka(p,v,tiempo_actual,tau,m,n,pasomaximo):
 	else:
 		print "Error: Runge-Kutta adaptativo fallo"
 		exit()
+
+def update(num, dataLines, lineas, pts):	
+    for line,pt, data in zip(lineas, pts, dataLines):	
+        # NOTE: there is no .set_data() for 3 dim data...	
+        x,y=data[0:2, :num]	
+        z=data[2, :num]	
+        line.set_data(x,y)	
+        line.set_3d_properties(z)	
+        pt.set_data(x[-1:],y[-1:])	
+        pt.set_3d_properties(z[-1:])	
+
+    return lineas+pts
 
 
